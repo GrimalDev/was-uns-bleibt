@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Cervo part 1",
+    "options": [
+      {
+        "id": 1,
+        "titre": "",
+        "placeholder": ""
+      },
+      {
+        "id": 2,
+        "titre": "",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Cervo part 2",
+    "options": [
+      {
+        "id": 1,
+        "titre": "",
+        "placeholder": ""
+      },
+      {
+        "id": 2,
+        "titre": "",
+        "placeholder": ""
+      }
+    ]
+  }
+]

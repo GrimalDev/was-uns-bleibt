@@ -38,3 +38,9 @@ Typical launch approach:
 - Set window position/size so each window maps to a specific display
 
 This enables unattended startup for a kiosk-like dual-screen setup.
+
+## Tech Stack
+
+- **Backend API:** Go
+- **Frontend SPA:** Svelte
+- **Rendering Engine:** PixiJS (WebGL)

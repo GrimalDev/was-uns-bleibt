@@ -1,0 +1,13 @@
+[Unit]
+Description=was-uns-bleibt kiosk screen B
+After=graphical.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/chromium-browser --kiosk --app=http://127.0.0.1:8080/?screen=aux
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical.target

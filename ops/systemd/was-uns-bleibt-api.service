@@ -1,0 +1,14 @@
+[Unit]
+Description=was-uns-bleibt Go API
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/was-uns-bleibt
+Environment=PORT=8080
+ExecStart=/opt/was-uns-bleibt/bin/api
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
