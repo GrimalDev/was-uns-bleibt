@@ -31,7 +31,7 @@ At this stage, the app does not need strict route-to-monitor enforcement.
 
 Raspberry Pi Chromium supports fullscreen kiosk mode.
 
-Typical launch approach:
+Launch approach:
 
 - Start two Chromium instances/windows
 - Pass kiosk/fullscreen flags
