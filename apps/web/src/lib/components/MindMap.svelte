@@ -60,17 +60,26 @@
 	const sections = mindmapData as MindMapSection[];
 
 	const SCENE_SCALE = 1.4;
-	const MAIN_NODE_CIRCLE_SIZE = 25 * SCENE_SCALE;
-	const MAIN_NODE_HIGHLIGHT_RADIUS = MAIN_NODE_CIRCLE_SIZE * 3;
+	const MAIN_NODE_CIRCLE_SIZE = 10 * SCENE_SCALE;
+	const MAIN_NODE_HIGHLIGHT_RADIUS = 60 * SCENE_SCALE;
 	const MAIN_NODE_ALPHA = 1;
-	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.28;
-	const LEAF_NODE_CIRCLE_SIZE = 15 * SCENE_SCALE;
-	const LEAF_NODE_HIGHLIGHT_RADIUS = LEAF_NODE_CIRCLE_SIZE * 1.7;
-	const LEAF_NODE_ALPHA = 0.9;
-	const LEAF_NODE_HIGHLIGHT_ALPHA = 0.22;
-
-	const RING_RADIUS_MULTIPLIER = 0.19;
+	const NODE_FILL_COLOR = 0xffffff;
+	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.8;
+	const MAIN_RING_RADIUS_MULTIPLIER = 0.19;
+	const LEAF_NODE_CIRCLE_SIZE = 7 * SCENE_SCALE;
+	const LEAF_NODE_HIGHLIGHT_RADIUS = 40 * SCENE_SCALE;
+	const LEAF_NODE_ALPHA = 1;
+	const LEAF_NODE_HIGHLIGHT_ALPHA = 0.8;
 	const LEAF_RING_RADIUS_MULTIPLIER = 0.12;
+
+	const BUBBLE_PADDING_X = 40 * SCENE_SCALE;
+	const BUBBLE_PADDING_Y = 30 * SCENE_SCALE;
+	const BUBBLE_ALPHA = 0.5;
+
+	const LINK_COLOR = 0xffffff;
+	const LINK_WIDTH = 2 * SCENE_SCALE;
+
+	const CLUSTER_DISTANCE_FROM_CENTER = 1;
 
 	const SPRING_STRENGTH = 1;
 	const DAMPING = 0.1;
@@ -86,18 +95,12 @@
 	const TEXT_Z_INDEX = 1_000;
 	const LABEL_COLOR = '--color-on-surface';
 
-	// const MAIN_NODE_ASSET = mainNeuronImage;
-	// const MAIN_NODE_ASSET_SIZE = 80 * SCENE_SCALE;
-	// const LEAF_NODE_ASSET = leafNeuronImage;
-	// const LEAF_NODE_ASSET_SIZE = 40 * SCENE_SCALE;
 	const MAIN_NODE_ASSET = mainNeuronImage;
-	const MAIN_NODE_ASSET_SIZE = 0 * SCENE_SCALE;
+	const MAIN_NODE_ASSET_SIZE = 80 * SCENE_SCALE;
+	const MAIN_NODE_ASSET_ALPHA = 0.8;
 	const LEAF_NODE_ASSET = leafNeuronImage;
-	const LEAF_NODE_ASSET_SIZE = 0 * SCENE_SCALE;
-
-	const BUBBLE_PADDING_X = 40 * SCENE_SCALE;
-	const BUBBLE_PADDING_Y = 30 * SCENE_SCALE;
-	const BUBBLE_ALPHA = 0.15;
+	const LEAF_NODE_ASSET_SIZE = 40 * SCENE_SCALE;
+	const LEAF_NODE_ASSET_ALPHA = 0.8;
 
 	let containerEl: HTMLDivElement;
 	let canvasEl: HTMLCanvasElement;
@@ -272,7 +275,7 @@
 		const cx = width / 2;
 		const cy = height / 2;
 		const shortSide = Math.min(width, height);
-		const overviewRingRadius = shortSide * RING_RADIUS_MULTIPLIER * SCENE_SCALE;
+		const overviewRingRadius = shortSide * MAIN_RING_RADIUS_MULTIPLIER * CLUSTER_DISTANCE_FROM_CENTER * SCENE_SCALE;
 		const overviewLeafRingRadius = Math.max(shortSide * LEAF_RING_RADIUS_MULTIPLIER * SCENE_SCALE, 60 * SCENE_SCALE);
 
 		if (focusedClusterId === null) {
@@ -341,13 +344,14 @@
 		resolveLabelCollisions();
 	}
 
-	function createNodeImage(texture: Texture | undefined, size: number): Sprite | undefined {
+	function createNodeImage(texture: Texture | undefined, size: number, alpha: number): Sprite | undefined {
 		if (!texture) return undefined;
 
 		const image = new Sprite(texture);
 		image.anchor.set(0.5);
 		const scale = size / Math.max(texture.width, texture.height);
 		image.scale.set(scale);
+		image.alpha = alpha;
 		image.eventMode = 'none';
 		return image;
 	}
@@ -405,6 +409,8 @@
 			const color = brainColors[index % brainColors.length];
 			const container = new Container();
 			container.sortableChildren = true;
+			container.eventMode = 'static';
+			container.cursor = 'pointer';
 			const bubble = new Graphics();
 			bubble.zIndex = 0;
 			bubble.eventMode = 'none';
@@ -413,15 +419,13 @@
 			container.addChild(bubble, links);
 
 			const mainGlow = new Graphics()
-			.circle(0, 0, MAIN_NODE_HIGHLIGHT_RADIUS)
-			.fill({ color, alpha: MAIN_NODE_HIGHLIGHT_ALPHA });
-			mainGlow.filters = [new BlurFilter({ strength: 10 * SCENE_SCALE, quality: 3 })];
+				.circle(0, 0, MAIN_NODE_HIGHLIGHT_RADIUS)
+				.fill({ color, alpha: MAIN_NODE_HIGHLIGHT_ALPHA });
 
 			const mainGraphic = new Graphics()
 				.circle(0, 0, MAIN_NODE_CIRCLE_SIZE)
-				.fill({ color, alpha: MAIN_NODE_ALPHA });
-			mainGraphic.eventMode = 'static';
-			mainGraphic.cursor = 'pointer';
+			.fill({ color: NODE_FILL_COLOR, alpha: MAIN_NODE_ALPHA });
+			mainGraphic.eventMode = 'none';
 
 			const mainLabel = new Text({
 				text: section.name,
@@ -435,7 +439,7 @@
 			});
 			mainLabel.anchor.set(0.5, 0);
 			mainLabel.zIndex = TEXT_Z_INDEX;
-			const mainImage = createNodeImage(mainNodeTexture, MAIN_NODE_ASSET_SIZE);
+			const mainImage = createNodeImage(mainNodeTexture, MAIN_NODE_ASSET_SIZE, MAIN_NODE_ASSET_ALPHA);
 
 			container.addChild(mainGlow, mainGraphic);
 			if (mainImage) container.addChild(mainImage);
@@ -465,11 +469,10 @@
 					color,
 					alpha: LEAF_NODE_HIGHLIGHT_ALPHA
 				});
-				leafGlow.filters = [new BlurFilter({ strength: 5 * SCENE_SCALE, quality: 2 })];
 
 				const leafGraphic = new Graphics()
 					.circle(0, 0, LEAF_NODE_CIRCLE_SIZE)
-					.fill({ color, alpha: LEAF_NODE_ALPHA });
+					.fill({ color: NODE_FILL_COLOR, alpha: LEAF_NODE_ALPHA });
 
 				const label = new Text({
 					text: phrase,
@@ -484,7 +487,7 @@
 			label.anchor.set(0.5, 0);
 			label.zIndex = TEXT_Z_INDEX;
 			label.alpha = 0.85;
-				const image = createNodeImage(leafNodeTexture, LEAF_NODE_ASSET_SIZE);
+				const image = createNodeImage(leafNodeTexture, LEAF_NODE_ASSET_SIZE, LEAF_NODE_ASSET_ALPHA);
 
 				container.addChild(leafGlow, leafGraphic);
 				if (image) container.addChild(image);
@@ -511,7 +514,7 @@
 				return leaf;
 			});
 
-			mainGraphic.on('pointertap', (event) => {
+			container.on('pointertap', (event) => {
 				event.stopPropagation();
 				toggleFocus(section.id);
 			});
@@ -600,7 +603,7 @@
 			cluster.links
 				.moveTo(cluster.main.x, cluster.main.y)
 				.lineTo(leaf.x, leaf.y)
-				.stroke({ width: 1.2 * SCENE_SCALE, color: cluster.color, alpha: 0.35 });
+				.stroke({ width: LINK_WIDTH, color: LINK_COLOR, alpha: 0.35 });
 		});
 	}
 
