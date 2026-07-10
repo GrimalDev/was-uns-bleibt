@@ -2,14 +2,12 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Color, BlurFilter } from 'pixi.js';
 	import mindmapData from '$lib/data/mindmap.json';
-
-	type MindMapPhrase = string | { text: string; imageSrc?: string };
+	import neuronSvg from '$lib/assets/neurons/neuron.svg';
 
 	type MindMapSection = {
 		id: number;
 		name: string;
-		imageSrc?: string;
-		phrases: MindMapPhrase[];
+		phrases: string[];
 	};
 
 	type LeafNode = {
@@ -74,6 +72,7 @@
 	const LABEL_PADDING_Y = 8 * SCENE_SCALE;
 	const LABEL_COLLISION_ITERATIONS = 24;
 	const NODE_IMAGE_SIZE = 28 * SCENE_SCALE;
+	const NODE_ASSET_SRC = neuronSvg;
 
 	let containerEl: HTMLDivElement;
 	let canvasEl: HTMLCanvasElement;
@@ -312,10 +311,7 @@
 		resolveLabelCollisions();
 	}
 
-	function createNodeImage(imageSrc: string | undefined, imageTextures: Map<string, Texture>): Sprite | undefined {
-		if (!imageSrc) return undefined;
-
-		const texture = imageTextures.get(imageSrc);
+	function createNodeImage(texture: Texture | undefined): Sprite | undefined {
 		if (!texture) return undefined;
 
 		const image = new Sprite(texture);
@@ -326,30 +322,18 @@
 		return image;
 	}
 
-	async function loadImageTextures(): Promise<Map<string, Texture>> {
-		const imageSources = sections.flatMap((section) => [
-			section.imageSrc,
-			...section.phrases.map((phrase) => (typeof phrase === 'string' ? undefined : phrase.imageSrc))
-		]);
-		const uniqueSources = [...new Set(imageSources.filter((source): source is string => Boolean(source)))];
-		const loadedTextures = await Promise.all(
-			uniqueSources.map(async (src) => {
-				try {
-					const texture = await Assets.load<Texture>({
-						src,
-						data: { resolution: 4 }
-					});
-					return [src, texture] as const;
-				} catch {
-					return null;
-				}
-			})
-		);
-
-		return new Map(loadedTextures.filter((entry): entry is readonly [string, Texture] => entry !== null));
+	async function loadNodeTexture(): Promise<Texture | undefined> {
+		try {
+			return await Assets.load<Texture>({
+				src: NODE_ASSET_SRC,
+				data: { resolution: 4 }
+			});
+		} catch {
+			return undefined;
+		}
 	}
 
-	function buildClusters(textResolution: number, imageTextures: Map<string, Texture>): Cluster[] {
+	function buildClusters(textResolution: number, nodeTexture: Texture | undefined): Cluster[] {
 		const brainColors = [1, 2, 3, 4, 5].map((n) => readCssColor(`--color-brain-${n}`, '#c8ddf2'));
 		const textColor = readCssColor('--color-on-surface', '#181c21');
 
@@ -383,7 +367,7 @@
 			});
 			mainLabel.anchor.set(0.5, 0);
 			mainLabel.y = MAIN_RADIUS + 8 * SCENE_SCALE;
-			const mainImage = createNodeImage(section.imageSrc, imageTextures);
+			const mainImage = createNodeImage(nodeTexture);
 
 			container.addChild(mainGlow, mainGraphic);
 			if (mainImage) container.addChild(mainImage);
@@ -393,7 +377,7 @@
 				graphic: mainGraphic,
 				glow: mainGlow,
 				label: mainLabel,
-				imageSrc: section.imageSrc,
+				imageSrc: NODE_ASSET_SRC,
 				image: mainImage,
 				labelWidth: mainLabel.getLocalBounds().width,
 				labelHeight: mainLabel.getLocalBounds().height,
@@ -407,9 +391,7 @@
 				phaseY: Math.random() * Math.PI * 2
 			};
 
-			const leaves: LeafNode[] = section.phrases.map((phraseDefinition) => {
-				const phrase = typeof phraseDefinition === 'string' ? phraseDefinition : phraseDefinition.text;
-				const imageSrc = typeof phraseDefinition === 'string' ? undefined : phraseDefinition.imageSrc;
+			const leaves: LeafNode[] = section.phrases.map((phrase) => {
 				const leafGlow = new Graphics().circle(0, 0, LEAF_RADIUS * 2.2).fill({ color, alpha: 0.22 });
 				leafGlow.filters = [new BlurFilter({ strength: 5 * SCENE_SCALE, quality: 2 })];
 
@@ -430,7 +412,7 @@
 				label.anchor.set(0.5, 0);
 				label.y = LEAF_RADIUS + 4 * SCENE_SCALE;
 				label.alpha = 0.85;
-				const image = createNodeImage(imageSrc, imageTextures);
+				const image = createNodeImage(nodeTexture);
 
 				container.addChild(leafGlow, leafGraphic);
 				if (image) container.addChild(image);
@@ -440,7 +422,7 @@
 					graphic: leafGraphic,
 					glow: leafGlow,
 					label,
-					imageSrc,
+					imageSrc: NODE_ASSET_SRC,
 					image,
 					labelWidth: label.getLocalBounds().width,
 					labelHeight: label.getLocalBounds().height,
@@ -616,13 +598,13 @@
 				}
 			});
 
-			const imageTextures = await loadImageTextures();
+			const nodeTexture = await loadNodeTexture();
 			if (cancelled) {
 				instance.destroy({ releaseGlobalResources: true }, { children: true, texture: true, textureSource: true });
 				return;
 			}
 
-			clusters = buildClusters(rendererResolution * ZOOM_SCALE, imageTextures);
+			clusters = buildClusters(rendererResolution * ZOOM_SCALE, nodeTexture);
 			clusters.forEach((cluster) => worldContainer.addChild(cluster.container));
 			computeLayout(instance.screen.width, instance.screen.height);
 
