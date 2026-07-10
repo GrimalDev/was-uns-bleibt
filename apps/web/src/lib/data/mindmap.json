@@ -1,0 +1,27 @@
+[
+	{
+		"id": 1,
+		"name": "Memories",
+		"phrases": ["First Memory", "Favorite Game", "Family Lessons", "Someone Giving", "Playful Moments"]
+	},
+	{
+		"id": 2,
+		"name": "People",
+		"phrases": ["Loved Ones", "Best Friend", "Family Ties", "Guiding Mentors", "Kindred Spirits"]
+	},
+	{
+		"id": 3,
+		"name": "Places",
+		"phrases": ["Childhood Home", "Favorite Getaway", "Quiet Corners", "Old Streets", "Family Table"]
+	},
+	{
+		"id": 4,
+		"name": "Objects",
+		"phrases": ["Old Photograph", "Handwritten Letter", "Worn Keepsake", "Family Heirloom", "Small Trinket"]
+	},
+	{
+		"id": 5,
+		"name": "Feelings",
+		"phrases": ["Quiet Gratitude", "Bittersweet Joy", "Warm Nostalgia", "Gentle Longing", "Lasting Comfort"]
+	}
+]
