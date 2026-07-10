@@ -1,20 +1,40 @@
 <script lang="ts">
-	import formDefinition from '$lib/data/form.json';
+	import { onMount } from 'svelte';
 	import '$lib/styles/screens/map-screen.scss';
 	import '$lib/styles/screens/question-screen.scss';
 
+	type FormOption = {
+		titre: string;
+		placeholder: string;
+	};
+
+	type FormPart = {
+		id: number;
+		options: FormOption[];
+	};
+
+	let formDefinition: FormPart[] = [];
 	const selectedPartId = 1;
-	const selectedPart = formDefinition.find((part) => part.id === selectedPartId);
-	const selectedOption =
-		selectedPart && selectedPart.options.length > 0
+	let questionTitle = 'What memory or thought would you like to leave here?';
+	let questionPlaceholder =
+		'For example: I still remember the warmth of your voice — type your own answer...';
+	let questionSegments = questionTitle.match(/\*[^*]+\*|[^*]+/g) ?? [questionTitle];
+	const questionAccent = `var(--color-brain-${selectedPartId})`;
+
+	onMount(async () => {
+		const response = await fetch('/form.json');
+		if (!response.ok) return;
+
+		formDefinition = (await response.json()) as FormPart[];
+		const selectedPart = formDefinition.find((part) => part.id === selectedPartId);
+		const selectedOption = selectedPart?.options.length
 			? selectedPart.options[Math.floor(Math.random() * selectedPart.options.length)]
 			: null;
-	const questionTitle = selectedOption?.titre || 'What memory or thought would you like to leave here?';
-	const questionPlaceholder =
-		selectedOption?.placeholder ||
-		'For example: I still remember the warmth of your voice — type your own answer...';
-	const questionSegments = questionTitle.match(/\*[^*]+\*|[^*]+/g) ?? [questionTitle];
-	const questionAccent = `var(--color-brain-${selectedPartId})`;
+
+		questionTitle = selectedOption?.titre || questionTitle;
+		questionPlaceholder = selectedOption?.placeholder || questionPlaceholder;
+		questionSegments = questionTitle.match(/\*[^*]+\*|[^*]+/g) ?? [questionTitle];
+	});
 </script>
 
 <div class="form-page" aria-label="main-view" data-form-sections={formDefinition.length}>

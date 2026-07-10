@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Color, BlurFilter } from 'pixi.js';
-	import mindmapData from '$lib/data/mindmap.json';
 	import mainNeuronImage from '$lib/assets/neurons/main_neuron.svg';
 	import leafNeuronImage from '$lib/assets/neurons/leaf_neuron.svg';
 
 	type MindMapSection = {
 		id: number;
 		name: string;
+		anchor: {
+			x: number;
+			y: number;
+		};
+		rotationSpeed: number;
 		phrases: string[];
 	};
 
@@ -53,33 +57,41 @@
 		container: Container;
 		bubble: Graphics;
 		links: Graphics;
+		rotationSpeed: number;
 		main: MainNode;
 		leaves: LeafNode[];
 	};
 
-	const sections = mindmapData as MindMapSection[];
+	let sections: MindMapSection[] = [];
 
 	const SCENE_SCALE = 1.4;
+
 	const MAIN_NODE_CIRCLE_SIZE = 10 * SCENE_SCALE;
 	const MAIN_NODE_HIGHLIGHT_RADIUS = 60 * SCENE_SCALE;
 	const MAIN_NODE_ALPHA = 1;
-	const NODE_FILL_COLOR = 0xffffff;
 	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.8;
-	const MAIN_RING_RADIUS_MULTIPLIER = 0.19;
+	const MAIN_NODE_ASSET = mainNeuronImage;
+	const MAIN_NODE_ASSET_SIZE = 80 * SCENE_SCALE;
+	const MAIN_NODE_ASSET_ALPHA = 0.8;
+
 	const LEAF_NODE_CIRCLE_SIZE = 7 * SCENE_SCALE;
 	const LEAF_NODE_HIGHLIGHT_RADIUS = 40 * SCENE_SCALE;
 	const LEAF_NODE_ALPHA = 1;
 	const LEAF_NODE_HIGHLIGHT_ALPHA = 0.8;
-	const LEAF_RING_RADIUS_MULTIPLIER = 0.12;
+	const LEAF_RING_RADIUS_MULTIPLIER = 0.1;
+	const LEAF_NODE_ASSET = leafNeuronImage;
+	const LEAF_NODE_ASSET_SIZE = 40 * SCENE_SCALE;
+	const LEAF_NODE_ASSET_ALPHA = 0.8;
+	const LEAF_MIN_DISTANCE = 56 * SCENE_SCALE;
+	const LEAF_MIN_GAP_RATIO = 0.72;
 
-	const BUBBLE_PADDING_X = 40 * SCENE_SCALE;
-	const BUBBLE_PADDING_Y = 30 * SCENE_SCALE;
+	const BUBBLE_PADDING_X = 90 * SCENE_SCALE;
+	const BUBBLE_PADDING_Y = 60 * SCENE_SCALE;
 	const BUBBLE_ALPHA = 0.5;
 
+	const NODE_FILL_COLOR = 0xffffff;
 	const LINK_COLOR = 0xffffff;
 	const LINK_WIDTH = 2 * SCENE_SCALE;
-
-	const CLUSTER_DISTANCE_FROM_CENTER = 1;
 
 	const SPRING_STRENGTH = 1;
 	const DAMPING = 0.1;
@@ -87,20 +99,14 @@
 	const DRIFT_SPEED = 0.9;
 
 	const ZOOM_DURATION = 650;
-	const ZOOM_SCALE = 2.6;
+	const CLUSTER_ZOOM_SCALE = 1.8;
+	const TEXT_RESOLUTION_SCALE = 2.6;
 
 	const LABEL_PADDING_X = 12 * SCENE_SCALE;
 	const LABEL_PADDING_Y = 8 * SCENE_SCALE;
 	const LABEL_COLLISION_ITERATIONS = 24;
 	const TEXT_Z_INDEX = 1_000;
 	const LABEL_COLOR = '--color-on-surface';
-
-	const MAIN_NODE_ASSET = mainNeuronImage;
-	const MAIN_NODE_ASSET_SIZE = 80 * SCENE_SCALE;
-	const MAIN_NODE_ASSET_ALPHA = 0.8;
-	const LEAF_NODE_ASSET = leafNeuronImage;
-	const LEAF_NODE_ASSET_SIZE = 40 * SCENE_SCALE;
-	const LEAF_NODE_ASSET_ALPHA = 0.8;
 
 	let containerEl: HTMLDivElement;
 	let canvasEl: HTMLCanvasElement;
@@ -270,21 +276,42 @@
 		}
 	}
 
+	function getLeafRingRadius(baseRadius: number, count: number, minimumAngularGap: number): number {
+		if (count <= 1) return baseRadius;
+
+		const radiusForMinimumDistance = LEAF_MIN_DISTANCE / (2 * Math.sin(minimumAngularGap / 2));
+
+		return Math.max(baseRadius, radiusForMinimumDistance);
+	}
+
+	function getCircularLeafAngles(count: number): number[] {
+		if (count <= 1) return [0];
+
+		const equalSpacing = (Math.PI * 2) / count;
+		const maximumOffset = equalSpacing * 0.1;
+
+		return Array.from({ length: count }, (_, index) => {
+			const equalAngle = index * equalSpacing;
+			const offset = Math.sin((index + 1) * 1.7) * maximumOffset;
+			return equalAngle + offset;
+		});
+	}
+
 	/** Computes fixed "home" positions for all clusters so everything fits in one viewport. */
 	function computeLayout(width: number, height: number) {
 		const cx = width / 2;
 		const cy = height / 2;
 		const shortSide = Math.min(width, height);
-		const overviewRingRadius = shortSide * MAIN_RING_RADIUS_MULTIPLIER * CLUSTER_DISTANCE_FROM_CENTER * SCENE_SCALE;
 		const overviewLeafRingRadius = Math.max(shortSide * LEAF_RING_RADIUS_MULTIPLIER * SCENE_SCALE, 60 * SCENE_SCALE);
 
 		if (focusedClusterId === null) {
-			const count = clusters.length;
+			clusters.forEach((cluster) => {
+				const section = sections.find((candidate) => candidate.id === cluster.id);
+				if (!section) return;
 
-			clusters.forEach((cluster, index) => {
-				const angle = (index / count) * Math.PI * 2 - Math.PI / 2;
-				const mainX = cx + Math.cos(angle) * overviewRingRadius;
-				const mainY = cy + Math.sin(angle) * overviewRingRadius;
+				const mainX = width * section.anchor.x;
+				const mainY = height * section.anchor.y;
+				const angle = Math.atan2(mainY - cy, mainX - cx);
 
 				cluster.main.homeX = mainX;
 				cluster.main.homeY = mainY;
@@ -294,11 +321,14 @@
 				}
 
 				const leafCount = cluster.leaves.length;
+				const overviewMaximumGap = leafCount > 1 ? (Math.PI * 2) / leafCount : 0;
+				const overviewMinimumGap = overviewMaximumGap * LEAF_MIN_GAP_RATIO;
+				const leafRingRadius = getLeafRingRadius(overviewLeafRingRadius, leafCount, overviewMinimumGap);
+				const leafAngles = getCircularLeafAngles(leafCount);
 				cluster.leaves.forEach((leaf, leafIndex) => {
-					const spread = Math.PI * 0.85;
-					const leafAngle = angle - spread / 2 + (leafCount > 1 ? (leafIndex / (leafCount - 1)) * spread : 0);
-					const leafX = mainX + Math.cos(leafAngle) * overviewLeafRingRadius;
-					const leafY = mainY + Math.sin(leafAngle) * overviewLeafRingRadius;
+					const leafAngle = angle - Math.PI / 2 + (leafAngles[leafIndex] ?? 0);
+					const leafX = mainX + Math.cos(leafAngle) * leafRingRadius;
+					const leafY = mainY + Math.sin(leafAngle) * leafRingRadius;
 
 					leaf.homeX = leafX;
 					leaf.homeY = leafY;
@@ -319,10 +349,13 @@
 				focusedCluster.main.homeY = cy;
 
 				const leafCount = focusedCluster.leaves.length;
+				const focusMinimumGap = ((Math.PI * 2) / leafCount) * (1 - 0.2);
+				const leafRingRadius = getLeafRingRadius(focusLeafRingRadius, leafCount, focusMinimumGap);
+				const leafAngles = getCircularLeafAngles(leafCount);
 				focusedCluster.leaves.forEach((leaf, leafIndex) => {
-					const leafAngle = -Math.PI / 2 + (leafIndex / leafCount) * Math.PI * 2;
-					leaf.homeX = cx + Math.cos(leafAngle) * focusLeafRingRadius;
-					leaf.homeY = cy + Math.sin(leafAngle) * focusLeafRingRadius;
+					const leafAngle = -Math.PI / 2 + (leafAngles[leafIndex] ?? 0);
+					leaf.homeX = cx + Math.cos(leafAngle) * leafRingRadius;
+					leaf.homeY = cy + Math.sin(leafAngle) * leafRingRadius;
 				});
 			}
 
@@ -413,7 +446,8 @@
 			container.cursor = 'pointer';
 			const bubble = new Graphics();
 			bubble.zIndex = 0;
-			bubble.eventMode = 'none';
+			bubble.eventMode = 'static';
+			bubble.cursor = 'pointer';
 			const links = new Graphics();
 			links.zIndex = 1;
 			container.addChild(bubble, links);
@@ -519,7 +553,16 @@
 				toggleFocus(section.id);
 			});
 
-			return { id: section.id, color, container, bubble, links, main, leaves };
+			return {
+				id: section.id,
+				color,
+				container,
+				bubble,
+				links,
+				rotationSpeed: section.rotationSpeed,
+				main,
+				leaves
+			};
 		});
 	}
 
@@ -532,13 +575,13 @@
 			focusedClusterId = id;
 		}
 
-		if (world) {
-			world.position.set(0, 0);
-			world.scale.set(1);
-		}
-
-		cameraTween = null;
 		computeLayout(app.screen.width, app.screen.height);
+		const scale = focusedClusterId === null ? 1 : CLUSTER_ZOOM_SCALE;
+		startCameraTween({
+			x: (app.screen.width / 2) * (1 - scale),
+			y: (app.screen.height / 2) * (1 - scale),
+			scale
+		});
 	}
 
 	function startCameraTween(target: { x: number; y: number; scale: number }) {
@@ -579,13 +622,30 @@
 		});
 	}
 
-	function stepNode(node: MainNode | LeafNode, elapsedMs: number, deltaTime: number) {
+	function stepNode(
+		node: MainNode | LeafNode,
+		elapsedMs: number,
+		deltaTime: number,
+		rotationCenter?: { x: number; y: number },
+		rotation = 0
+	) {
 		const t = elapsedMs / 1000;
 		const driftX = Math.sin(t * DRIFT_SPEED + node.phaseX) * DRIFT_AMPLITUDE;
 		const driftY = Math.cos(t * DRIFT_SPEED * 0.85 + node.phaseY) * DRIFT_AMPLITUDE;
+		let homeX = node.homeX;
+		let homeY = node.homeY;
 
-		const targetX = node.homeX + driftX;
-		const targetY = node.homeY + driftY;
+		if (rotationCenter) {
+			const relativeX = node.homeX - rotationCenter.x;
+			const relativeY = node.homeY - rotationCenter.y;
+			const cos = Math.cos(rotation);
+			const sin = Math.sin(rotation);
+			homeX = rotationCenter.x + relativeX * cos - relativeY * sin;
+			homeY = rotationCenter.y + relativeX * sin + relativeY * cos;
+		}
+
+		const targetX = homeX + driftX;
+		const targetY = homeY + driftY;
 
 		const ax = (targetX - node.x) * SPRING_STRENGTH;
 		const ay = (targetY - node.y) * SPRING_STRENGTH;
@@ -609,20 +669,27 @@
 
 	function renderFrame(elapsedMs: number, deltaTime: number) {
 		clusters.forEach((cluster) => {
+			const rotation = (elapsedMs / 1000) * cluster.rotationSpeed;
 			stepNode(cluster.main, elapsedMs, deltaTime);
 			cluster.main.graphic.position.set(cluster.main.x, cluster.main.y);
 			cluster.main.glow.position.set(cluster.main.x, cluster.main.y);
-			cluster.main.image?.position.set(cluster.main.x, cluster.main.y);
+			if (cluster.main.image) {
+				cluster.main.image.position.set(cluster.main.x, cluster.main.y);
+				cluster.main.image.rotation = rotation;
+			}
 			cluster.main.label.position.set(
 				cluster.main.x,
 				cluster.main.y + getLabelOffset(cluster.main, MAIN_NODE_CIRCLE_SIZE, 8 * SCENE_SCALE)
 			);
 
 			cluster.leaves.forEach((leaf) => {
-				stepNode(leaf, elapsedMs, deltaTime);
+				stepNode(leaf, elapsedMs, deltaTime, cluster.main, rotation);
 				leaf.graphic.position.set(leaf.x, leaf.y);
 				leaf.glow.position.set(leaf.x, leaf.y);
-				leaf.image?.position.set(leaf.x, leaf.y);
+				if (leaf.image) {
+					leaf.image.position.set(leaf.x, leaf.y);
+					leaf.image.rotation = rotation;
+				}
 				leaf.label.position.set(leaf.x, leaf.y + getLabelOffset(leaf, LEAF_NODE_CIRCLE_SIZE, 4 * SCENE_SCALE));
 			});
 
@@ -644,11 +711,15 @@
 		computeLayout(app.screen.width, app.screen.height);
 	}
 
-	onMount(() => {
+		onMount(() => {
 		let cancelled = false;
 		const startTime = performance.now();
 
 		(async () => {
+			const dataResponse = await fetch('/mindmap.json');
+			if (!dataResponse.ok) return;
+			sections = (await dataResponse.json()) as MindMapSection[];
+
 			const instance = new Application();
 			const rendererResolution = Math.min(window.devicePixelRatio || 1, 2);
 			await instance.init({
@@ -688,7 +759,7 @@
 				return;
 			}
 
-			clusters = buildClusters(rendererResolution * ZOOM_SCALE, mainNodeTexture, leafNodeTexture);
+			clusters = buildClusters(rendererResolution * TEXT_RESOLUTION_SCALE, mainNodeTexture, leafNodeTexture);
 			clusters.forEach((cluster) => worldContainer.addChild(cluster.container));
 			computeLayout(instance.screen.width, instance.screen.height);
 
