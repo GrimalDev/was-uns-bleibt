@@ -22,7 +22,7 @@
 	const questionAccent = `var(--color-brain-${selectedPartId})`;
 
 	onMount(async () => {
-		const response = await fetch('/form.json');
+		const response = await fetch('/data/form.json');
 		if (!response.ok) return;
 
 		formDefinition = (await response.json()) as FormPart[];

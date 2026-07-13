@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Color, BlurFilter } from 'pixi.js';
-	import mainNeuronImage from '$lib/assets/neurons/main_neuron.svg';
-	import leafNeuronImage from '$lib/assets/neurons/leaf_neuron.svg';
+	import neuron1Image from '$lib/assets/neurons/neuron_1.png';
+	import neuron2Image from '$lib/assets/neurons/neuron_2.png';
+	import neuron3Image from '$lib/assets/neurons/neuron_3.png';
+	import neuron4Image from '$lib/assets/neurons/neuron_4.png';
 
 	type MindMapSection = {
 		id: number;
@@ -58,6 +60,7 @@
 		bubble: Graphics;
 		links: Graphics;
 		rotationSpeed: number;
+		scale: number;
 		main: MainNode;
 		leaves: LeafNode[];
 	};
@@ -69,28 +72,32 @@
 	const MAIN_NODE_CIRCLE_SIZE = 10 * SCENE_SCALE;
 	const MAIN_NODE_HIGHLIGHT_RADIUS = 60 * SCENE_SCALE;
 	const MAIN_NODE_ALPHA = 1;
-	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.8;
-	const MAIN_NODE_ASSET = mainNeuronImage;
-	const MAIN_NODE_ASSET_SIZE = 80 * SCENE_SCALE;
-	const MAIN_NODE_ASSET_ALPHA = 0.8;
+	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.2;
+	const NEURON_ASSETS = [neuron1Image, neuron2Image, neuron3Image, neuron4Image];
+	const MAIN_NODE_ASSET_SIZE = 200 * SCENE_SCALE;
+	const MAIN_NODE_ASSET_ALPHA = 1;
 
 	const LEAF_NODE_CIRCLE_SIZE = 7 * SCENE_SCALE;
-	const LEAF_NODE_HIGHLIGHT_RADIUS = 40 * SCENE_SCALE;
+	const LEAF_NODE_HIGHLIGHT_RADIUS = 0 * SCENE_SCALE;
 	const LEAF_NODE_ALPHA = 1;
 	const LEAF_NODE_HIGHLIGHT_ALPHA = 0.8;
 	const LEAF_RING_RADIUS_MULTIPLIER = 0.1;
-	const LEAF_NODE_ASSET = leafNeuronImage;
-	const LEAF_NODE_ASSET_SIZE = 40 * SCENE_SCALE;
-	const LEAF_NODE_ASSET_ALPHA = 0.8;
 	const LEAF_MIN_DISTANCE = 56 * SCENE_SCALE;
 	const LEAF_MIN_GAP_RATIO = 0.72;
 
 	const BUBBLE_PADDING_X = 90 * SCENE_SCALE;
 	const BUBBLE_PADDING_Y = 60 * SCENE_SCALE;
 	const BUBBLE_ALPHA = 0.5;
+	const BLOB_PROFILES = [
+		[1, 0.96, 0.92, 1.04, 1.08, 1.02, 0.94, 0.9, 0.98, 1.06, 1.04, 0.96, 1.02, 0.93, 1.07, 1.01, 0.95, 1.03, 0.92, 0.98],
+		[0.95, 1.02, 1.08, 1.04, 0.96, 0.91, 0.94, 1.03, 1.06, 1.1, 1.02, 0.98, 0.94, 1.02, 0.9, 0.96, 1.04, 1.01, 0.92, 1.05],
+		[1.06, 1.02, 0.95, 0.9, 0.96, 1.04, 1.08, 1.03, 0.97, 0.92, 1.01, 1.07, 1.1, 1.04, 0.94, 0.91, 1.01, 1.06, 0.98, 0.96],
+		[0.92, 0.98, 1.04, 1.1, 1.06, 0.96, 0.92, 1.02, 1.08, 1.03, 0.9, 0.95, 1.05, 1.07, 0.98, 0.93, 1.03, 1.06, 0.94, 1.01],
+		[1.04, 1.01, 0.9, 0.94, 1.07, 1.09, 1.03, 0.98, 0.93, 1.05, 1.01, 0.91, 1.06, 1.08, 0.97, 0.94, 1.02, 1.05, 0.96, 1.03]
+	] as const;
 
-	const NODE_FILL_COLOR = 0xffffff;
-	const LINK_COLOR = 0xffffff;
+	const NODE_FILL_COLOR = 0xE5E5E5;
+	const LINK_COLOR = 0xE5E5E5;
 	const LINK_WIDTH = 2 * SCENE_SCALE;
 
 	const SPRING_STRENGTH = 1;
@@ -98,12 +105,14 @@
 	const DRIFT_AMPLITUDE = 7 * SCENE_SCALE;
 	const DRIFT_SPEED = 0.9;
 
-	const ZOOM_DURATION = 650;
 	const CLUSTER_ZOOM_SCALE = 1.8;
+	const CLUSTER_BACKGROUND_SCALE = 0.65;
+	const CLUSTER_ZOOM_EASING = 0.12;
 	const TEXT_RESOLUTION_SCALE = 2.6;
 
 	const LABEL_PADDING_X = 12 * SCENE_SCALE;
 	const LABEL_PADDING_Y = 8 * SCENE_SCALE;
+	const MAIN_LABEL_GAP = -70 * SCENE_SCALE;
 	const LABEL_COLLISION_ITERATIONS = 24;
 	const TEXT_Z_INDEX = 1_000;
 	const LABEL_COLOR = '--color-on-surface';
@@ -117,16 +126,6 @@
 	let tickerCallback: ((ticker: { deltaTime: number }) => void) | undefined;
 
 	let focusedClusterId: number | null = null;
-	let cameraTween: {
-		start: number;
-		duration: number;
-		fromX: number;
-		fromY: number;
-		fromScale: number;
-		toX: number;
-		toY: number;
-		toScale: number;
-	} | null = null;
 
 	function readCssColor(varName: string, fallback: string): number {
 		if (typeof window === 'undefined') return new Color(fallback).toNumber();
@@ -136,10 +135,6 @@
 		} catch {
 			return new Color(fallback).toNumber();
 		}
-	}
-
-	function easeOutCubic(t: number): number {
-		return 1 - Math.pow(1 - t, 3);
 	}
 
 	type LabelBox = {
@@ -157,7 +152,7 @@
 
 	function getMainLabelBox(main: MainNode): LabelBox {
 		const centerX = main.homeX;
-		const topY = main.homeY + getLabelOffset(main, MAIN_NODE_CIRCLE_SIZE, 8 * SCENE_SCALE);
+		const topY = main.homeY + getLabelOffset(main, MAIN_NODE_CIRCLE_SIZE, MAIN_LABEL_GAP);
 
 		return {
 			left: centerX - main.labelWidth / 2 - LABEL_PADDING_X,
@@ -340,11 +335,40 @@
 			});
 		} else {
 			const focusedCluster = clusters.find((cluster) => cluster.id === focusedClusterId);
-			const otherClusters = clusters.filter((cluster) => cluster.id !== focusedClusterId);
 			const focusLeafRingRadius = Math.max(shortSide * LEAF_RING_RADIUS_MULTIPLIER * 1.4 * SCENE_SCALE, 84 * SCENE_SCALE);
-			const focusMainRingRadius = Math.max(shortSide * 0.34 * SCENE_SCALE, 210 * SCENE_SCALE);
 
 			if (focusedCluster) {
+				const focusedSection = sections.find((section) => section.id === focusedCluster.id);
+				const focusedAnchor = focusedSection
+					? { x: width * focusedSection.anchor.x, y: height * focusedSection.anchor.y }
+					: { x: focusedCluster.main.homeX, y: focusedCluster.main.homeY };
+				const centerClusterOverview = clusters
+					.slice()
+					.sort((first, second) => {
+						const firstDistance = Math.hypot(first.main.homeX - cx, first.main.homeY - cy);
+						const secondDistance = Math.hypot(second.main.homeX - cx, second.main.homeY - cy);
+						return firstDistance - secondDistance;
+					})[0];
+				const isCenterClusterSelected = centerClusterOverview?.id === focusedCluster.id;
+				const centerSwapCluster = clusters
+					.filter((cluster) => cluster.id !== focusedCluster.id)
+					.sort((first, second) => {
+						const firstDistance = Math.hypot(first.main.homeX - cx, first.main.homeY - cy);
+						const secondDistance = Math.hypot(second.main.homeX - cx, second.main.homeY - cy);
+						return firstDistance - secondDistance;
+					})[0];
+
+				if (!isCenterClusterSelected && centerSwapCluster) {
+					const offsetX = focusedAnchor.x - centerSwapCluster.main.homeX;
+					const offsetY = focusedAnchor.y - centerSwapCluster.main.homeY;
+					centerSwapCluster.main.homeX += offsetX;
+					centerSwapCluster.main.homeY += offsetY;
+					centerSwapCluster.leaves.forEach((leaf) => {
+						leaf.homeX += offsetX;
+						leaf.homeY += offsetY;
+					});
+				}
+
 				focusedCluster.main.homeX = cx;
 				focusedCluster.main.homeY = cy;
 
@@ -358,23 +382,9 @@
 					leaf.homeY = cy + Math.sin(leafAngle) * leafRingRadius;
 				});
 			}
-
-			otherClusters.forEach((cluster, index) => {
-				const angle = -Math.PI / 2 + (index / otherClusters.length) * Math.PI * 2;
-				const mainX = cx + Math.cos(angle) * focusMainRingRadius;
-				const mainY = cy + Math.sin(angle) * focusMainRingRadius;
-
-				cluster.main.homeX = mainX;
-				cluster.main.homeY = mainY;
-
-				cluster.leaves.forEach((leaf) => {
-					leaf.homeX = mainX;
-					leaf.homeY = mainY;
-				});
-			});
 		}
 
-		resolveLabelCollisions();
+		if (focusedClusterId === null) resolveLabelCollisions();
 	}
 
 	function createNodeImage(texture: Texture | undefined, size: number, alpha: number): Sprite | undefined {
@@ -398,6 +408,47 @@
 		} catch {
 			return undefined;
 		}
+	}
+
+	function drawBlob(
+		graphic: Graphics,
+		centerX: number,
+		centerY: number,
+		radiusX: number,
+		radiusY: number,
+		profileIndex: number,
+		color: number
+	) {
+		const profile = BLOB_PROFILES[profileIndex % BLOB_PROFILES.length];
+		const points = profile.map((radius, index) => {
+			const angle = -Math.PI / 2 + (index / profile.length) * Math.PI * 2;
+			return {
+				x: centerX + Math.cos(angle) * radiusX * radius,
+				y: centerY + Math.sin(angle) * radiusY * radius
+			};
+		});
+
+		graphic.clear().moveTo(points[0].x, points[0].y);
+		points.forEach((point, index) => {
+			const previous = points[(index - 1 + points.length) % points.length];
+			const next = points[(index + 1) % points.length];
+			const following = points[(index + 2) % points.length];
+			const incomingTangent = { x: next.x - previous.x, y: next.y - previous.y };
+			const outgoingTangent = { x: following.x - point.x, y: following.y - point.y };
+			const nextPoint = next;
+			const handle = 0.18;
+
+			graphic.bezierCurveTo(
+				point.x + incomingTangent.x * handle,
+				point.y + incomingTangent.y * handle,
+				nextPoint.x - outgoingTangent.x * handle,
+				nextPoint.y - outgoingTangent.y * handle,
+				nextPoint.x,
+				nextPoint.y
+			);
+		});
+
+		graphic.closePath().fill({ color, alpha: BUBBLE_ALPHA });
 	}
 
 	function updateClusterBubble(cluster: Cluster) {
@@ -424,16 +475,12 @@
 		const radiusX = (bounds.right - bounds.left) / 2 + BUBBLE_PADDING_X;
 		const radiusY = (bounds.bottom - bounds.top) / 2 + BUBBLE_PADDING_Y;
 
-		cluster.bubble.clear().ellipse(centerX, centerY, radiusX, radiusY).fill({
-			color: cluster.color,
-			alpha: BUBBLE_ALPHA
-		});
+		drawBlob(cluster.bubble, centerX, centerY, radiusX, radiusY, cluster.id, cluster.color);
 	}
 
 	function buildClusters(
 		textResolution: number,
-		mainNodeTexture: Texture | undefined,
-		leafNodeTexture: Texture | undefined
+		neuronTextures: (Texture | undefined)[]
 	): Cluster[] {
 		const brainColors = [1, 2, 3, 4, 5].map((n) => readCssColor(`--color-brain-${n}`, '#c8ddf2'));
 		const textColor = readCssColor(LABEL_COLOR, '#181c21');
@@ -473,7 +520,12 @@
 			});
 			mainLabel.anchor.set(0.5, 0);
 			mainLabel.zIndex = TEXT_Z_INDEX;
-			const mainImage = createNodeImage(mainNodeTexture, MAIN_NODE_ASSET_SIZE, MAIN_NODE_ASSET_ALPHA);
+			const neuronAssetIndex = index % NEURON_ASSETS.length;
+			const mainImage = createNodeImage(
+				neuronTextures[neuronAssetIndex],
+				MAIN_NODE_ASSET_SIZE,
+				MAIN_NODE_ASSET_ALPHA
+			);
 
 			container.addChild(mainGlow, mainGraphic);
 			if (mainImage) container.addChild(mainImage);
@@ -483,7 +535,7 @@
 				graphic: mainGraphic,
 				glow: mainGlow,
 				label: mainLabel,
-				imageSrc: MAIN_NODE_ASSET,
+				imageSrc: NEURON_ASSETS[neuronAssetIndex],
 				image: mainImage,
 				labelWidth: mainLabel.getLocalBounds().width,
 				labelHeight: mainLabel.getLocalBounds().height,
@@ -496,7 +548,7 @@
 				phaseX: Math.random() * Math.PI * 2,
 				phaseY: Math.random() * Math.PI * 2
 			};
-			mainLabel.y = getLabelOffset(main, MAIN_NODE_CIRCLE_SIZE, 8 * SCENE_SCALE);
+			mainLabel.y = getLabelOffset(main, MAIN_NODE_CIRCLE_SIZE, MAIN_LABEL_GAP);
 
 			const leaves: LeafNode[] = section.phrases.map((phrase) => {
 				const leafGlow = new Graphics().circle(0, 0, LEAF_NODE_HIGHLIGHT_RADIUS).fill({
@@ -521,18 +573,13 @@
 			label.anchor.set(0.5, 0);
 			label.zIndex = TEXT_Z_INDEX;
 			label.alpha = 0.85;
-				const image = createNodeImage(leafNodeTexture, LEAF_NODE_ASSET_SIZE, LEAF_NODE_ASSET_ALPHA);
-
 				container.addChild(leafGlow, leafGraphic);
-				if (image) container.addChild(image);
 				container.addChild(label);
 
 				const leaf = {
 					graphic: leafGraphic,
 					glow: leafGlow,
 					label,
-					imageSrc: LEAF_NODE_ASSET,
-					image,
 					labelWidth: label.getLocalBounds().width,
 					labelHeight: label.getLocalBounds().height,
 					homeX: 0,
@@ -560,6 +607,7 @@
 				bubble,
 				links,
 				rotationSpeed: section.rotationSpeed,
+				scale: 1,
 				main,
 				leaves
 			};
@@ -576,42 +624,6 @@
 		}
 
 		computeLayout(app.screen.width, app.screen.height);
-		const scale = focusedClusterId === null ? 1 : CLUSTER_ZOOM_SCALE;
-		startCameraTween({
-			x: (app.screen.width / 2) * (1 - scale),
-			y: (app.screen.height / 2) * (1 - scale),
-			scale
-		});
-	}
-
-	function startCameraTween(target: { x: number; y: number; scale: number }) {
-		if (!world) return;
-		cameraTween = {
-			start: performance.now(),
-			duration: ZOOM_DURATION,
-			fromX: world.x,
-			fromY: world.y,
-			fromScale: world.scale.x,
-			toX: target.x,
-			toY: target.y,
-			toScale: target.scale
-		};
-	}
-
-	function updateCameraTween() {
-		if (!cameraTween || !world) return;
-		const elapsed = performance.now() - cameraTween.start;
-		const t = Math.min(elapsed / cameraTween.duration, 1);
-		const eased = easeOutCubic(t);
-
-		world.x = cameraTween.fromX + (cameraTween.toX - cameraTween.fromX) * eased;
-		world.y = cameraTween.fromY + (cameraTween.toY - cameraTween.fromY) * eased;
-		const scale = cameraTween.fromScale + (cameraTween.toScale - cameraTween.fromScale) * eased;
-		world.scale.set(scale);
-
-		if (t >= 1) {
-			cameraTween = null;
-		}
 	}
 
 	function updateDimming() {
@@ -670,7 +682,17 @@
 	function renderFrame(elapsedMs: number, deltaTime: number) {
 		clusters.forEach((cluster) => {
 			const rotation = (elapsedMs / 1000) * cluster.rotationSpeed;
+			const targetScale =
+				focusedClusterId === null
+					? 1
+					: focusedClusterId === cluster.id
+						? CLUSTER_ZOOM_SCALE
+						: CLUSTER_BACKGROUND_SCALE;
+			cluster.scale += (targetScale - cluster.scale) * CLUSTER_ZOOM_EASING;
 			stepNode(cluster.main, elapsedMs, deltaTime);
+			cluster.container.pivot.set(cluster.main.x, cluster.main.y);
+			cluster.container.position.set(cluster.main.x, cluster.main.y);
+			cluster.container.scale.set(cluster.scale);
 			cluster.main.graphic.position.set(cluster.main.x, cluster.main.y);
 			cluster.main.glow.position.set(cluster.main.x, cluster.main.y);
 			if (cluster.main.image) {
@@ -679,7 +701,7 @@
 			}
 			cluster.main.label.position.set(
 				cluster.main.x,
-				cluster.main.y + getLabelOffset(cluster.main, MAIN_NODE_CIRCLE_SIZE, 8 * SCENE_SCALE)
+				cluster.main.y + getLabelOffset(cluster.main, MAIN_NODE_CIRCLE_SIZE, MAIN_LABEL_GAP)
 			);
 
 			cluster.leaves.forEach((leaf) => {
@@ -697,17 +719,11 @@
 			drawLinks(cluster);
 		});
 
-		updateCameraTween();
 		updateDimming();
 	}
 
 	function handleResize() {
 		if (!app) return;
-		if (world) {
-			world.position.set(0, 0);
-			world.scale.set(1);
-		}
-		cameraTween = null;
 		computeLayout(app.screen.width, app.screen.height);
 	}
 
@@ -750,16 +766,13 @@
 				}
 			});
 
-			const [mainNodeTexture, leafNodeTexture] = await Promise.all([
-				loadNodeTexture(MAIN_NODE_ASSET),
-				loadNodeTexture(LEAF_NODE_ASSET)
-			]);
+			const neuronTextures = await Promise.all(NEURON_ASSETS.map((asset) => loadNodeTexture(asset)));
 			if (cancelled) {
 				instance.destroy({ releaseGlobalResources: true }, { children: true, texture: true, textureSource: true });
 				return;
 			}
 
-			clusters = buildClusters(rendererResolution * TEXT_RESOLUTION_SCALE, mainNodeTexture, leafNodeTexture);
+			clusters = buildClusters(rendererResolution * TEXT_RESOLUTION_SCALE, neuronTextures);
 			clusters.forEach((cluster) => worldContainer.addChild(cluster.container));
 			computeLayout(instance.screen.width, instance.screen.height);
 
