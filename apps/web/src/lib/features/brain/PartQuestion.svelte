@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import '$lib/styles/screens/question-screen.scss';
+	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
 	import type { BrainPartId } from './brain-flow';
 	import { formDefinition, loadFormDefinition, selectRandomOption } from './form-data';
 
@@ -29,7 +30,7 @@
 		selectedOption?.placeholder ||
 		'For example: I still remember the warmth of your voice — type your own answer...';
 
-	$: questionSegments = questionTitle.match(/\*[^*]+\*|[^*]+/g) ?? [questionTitle];
+	$: questionSegments = questionTitle.match(/\*\*[^*]+\*\*|[^*]+/g) ?? [questionTitle];
 	$: questionAccent = `var(--color-brain-${partId})`;
 
 	onMount(async () => {
@@ -45,14 +46,23 @@
 </script>
 
 <div class="form-page" aria-label="question view" data-form-sections={$formDefinition.length}>
+	<div class="form-image">
+		<img
+			class="form-background"
+			src="/style/backgrounds/form_background.png"
+			alt=""
+			aria-hidden="true"
+		/>
+		<LanguageSelector />
+	</div>
 	<div class="prompt-layer fade-from-black" style={`--question-accent: ${questionAccent};`}>
 		<form class="prompt-card" aria-label="question input panel" on:submit|preventDefault={submitAnswer}>
 			<div class="prompt-copy">
 				<p class="prompt-label">Question</p>
 				<h1 class="prompt-question">
 					{#each questionSegments as segment, index (index)}
-						{#if segment.startsWith('*') && segment.endsWith('*')}
-							<span class="prompt-question__highlight">{segment.slice(1, -1)}</span>
+						{#if segment.startsWith('**') && segment.endsWith('**')}
+							<span class="prompt-question__highlight">{segment.slice(2, -2)}</span>
 						{:else}
 							{segment}
 						{/if}

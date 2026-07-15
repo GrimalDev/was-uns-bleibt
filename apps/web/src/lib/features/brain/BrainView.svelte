@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import '$lib/styles/screens/brain-screen.scss';
+	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
 	import type { BrainPartId } from './brain-flow';
 	import { formDefinition, loadFormDefinition } from './form-data';
 
@@ -64,7 +65,9 @@
 
 <section class="brain-view-placeholder fade-from-black" aria-labelledby="brain-view-title">
 	<h1 id="brain-view-title" class="sr-only">Choose a part of the brain</h1>
-	<svg viewBox="0 0 910 512" xmlns="http://www.w3.org/2000/svg" aria-labelledby="brain-view-title">
+	<div class="brain-image">
+		<LanguageSelector />
+		<svg viewBox="0 0 910 512" xmlns="http://www.w3.org/2000/svg" aria-labelledby="brain-view-title">
 		<image href="/style/animations/brain_loop.gif" width="910" height="512" />
 		{#each hotspots as hotspot (hotspot.id)}
 			<polygon
@@ -95,5 +98,21 @@
 				{/if}
 			</text>
 		{/each}
-	</svg>
+		</svg>
+	</div>
 </section>
+
+<style lang="scss">
+	.brain-image {
+		position: relative;
+		width: min(100%, calc(100vh * 1.77734375));
+		max-height: 100%;
+
+		svg {
+			display: block;
+			width: 100%;
+			height: auto;
+			max-height: 100%;
+		}
+	}
+</style>

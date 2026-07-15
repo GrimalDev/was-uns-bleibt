@@ -2,37 +2,6 @@
   {
     "id": 1,
     "name": {
-      "FR": "Lobe frontal",
-      "DE": "Frontallappen"
-    },
-    "options": [
-      {
-        "id": 1,
-        "titre": {
-          "FR": "De qui te **manque** le** rire** ?",
-          "DE": "Wessen **Lachen** **fehlt** dir?"
-        },
-        "placeholder": {
-          "FR": "Le rire qui me manque vient de...",
-          "DE": "Das Lachen, das mir fehlt, kommt von ..."
-        }
-      },
-      {
-        "id": 2,
-        "titre": {
-          "FR": "À qui aurais-tu voulu dire **merci** ?",
-          "DE": "Wem hättest du gerne **Danke** gesagt?"
-        },
-        "placeholder": {
-          "FR": "Je voudrais dire merci à...",
-          "DE": "Ich möchte ... Danke sagen."
-        }
-      }
-    ]
-  },
-  {
-    "id": 2,
-    "name": {
       "FR": "Lobe pariétal",
       "DE": "Parietallappen"
     },
@@ -62,6 +31,37 @@
     ]
   },
   {
+    "id": 2,
+    "name": {
+      "FR": "Lobe frontal",
+      "DE": "Frontallappen"
+    },
+    "options": [
+      {
+        "id": 1,
+        "titre": {
+          "FR": "De qui te **manque** le **rire** ?",
+          "DE": "Wessen **Lachen** **fehlt** dir?"
+        },
+        "placeholder": {
+          "FR": "Le rire qui me manque vient de...",
+          "DE": "Das Lachen, das mir fehlt, kommt von ..."
+        }
+      },
+      {
+        "id": 2,
+        "titre": {
+          "FR": "À qui aurais-tu voulu dire **merci** ?",
+          "DE": "Wem hättest du gerne **Danke** gesagt?"
+        },
+        "placeholder": {
+          "FR": "Je voudrais dire merci à...",
+          "DE": "Ich möchte ... Danke sagen."
+        }
+      }
+    ]
+  },
+  {
     "id": 3,
     "name": {
       "FR": "Lobe temporal",
@@ -71,7 +71,7 @@
       {
         "id": 1,
         "titre": {
-          "FR": "Quelle** chanson** te bouleverse encore ?",
+          "FR": "Quelle **chanson** te bouleverse encore ?",
           "DE": "Welches **Lied** berührt dich noch immer?"
         },
         "placeholder": {
@@ -102,7 +102,7 @@
       {
         "id": 1,
         "titre": {
-          "FR": "Quel **objet** touches-tu pour te sentir** proche** de quelqu'un qui te manque ?",
+          "FR": "Quel **objet** touches-tu pour te sentir **proche** de quelqu'un qui te manque ?",
           "DE": "Welchen **Gegenstand** berührst du, um dich jemandem, der dir fehlt, **nahe** zu fühlen?"
         },
         "placeholder": {
@@ -113,7 +113,7 @@
       {
         "id": 2,
         "titre": {
-          "FR": "Quel** geste** voudrais-tu **ressentir/voir** une dernière fois ?",
+          "FR": "Quel **geste** voudrais-tu **ressentir/voir** une dernière fois ?",
           "DE": "Welche **Geste** möchtest du ein letztes Mal **spüren/sehen**?"
         },
         "placeholder": {

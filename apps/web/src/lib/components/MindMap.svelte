@@ -5,6 +5,12 @@
 	import neuron2Image from '$lib/assets/neurons/neuron_2.png';
 	import neuron3Image from '$lib/assets/neurons/neuron_3.png';
 	import neuron4Image from '$lib/assets/neurons/neuron_4.png';
+	import neuron5Image from '$lib/assets/neurons/neuron_5.png';
+	import bubble1Image from '$lib/assets/bubbles/bubble_1.png';
+	import bubble2Image from '$lib/assets/bubbles/bubble_2.png';
+	import bubble3Image from '$lib/assets/bubbles/bubble_3.png';
+	import bubble4Image from '$lib/assets/bubbles/bubble_4.png';
+	import bubble5Image from '$lib/assets/bubbles/bubble_5.png';
 
 	type MindMapSection = {
 		id: number;
@@ -58,7 +64,7 @@
 		id: number;
 		color: number;
 		container: Container;
-		bubble: Graphics;
+		bubble: Sprite;
 		links: Graphics;
 		rotationSpeed: number;
 		scale: number;
@@ -75,7 +81,8 @@
 	const MAIN_NODE_HIGHLIGHT_RADIUS_Y = 60 * SCENE_SCALE;
 	const MAIN_NODE_ALPHA = 1;
 	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.2;
-	const NEURON_ASSETS = [neuron1Image, neuron2Image, neuron3Image, neuron4Image];
+	const NEURON_ASSETS = [neuron1Image, neuron2Image, neuron3Image, neuron4Image, neuron5Image];
+	const BUBBLE_ASSETS = [bubble1Image, bubble2Image, bubble3Image, bubble4Image, bubble5Image];
 	const MAIN_NODE_ASSET_SIZE = 200 * SCENE_SCALE;
 	const MAIN_NODE_ASSET_ALPHA = 1;
 
@@ -90,6 +97,8 @@
 	const BUBBLE_PADDING_X = 90 * SCENE_SCALE;
 	const BUBBLE_PADDING_Y = 60 * SCENE_SCALE;
 	const BUBBLE_ALPHA = 0.5;
+	const BUBBLE_CONTENT_WIDTH_RATIO = 780 / 1920;
+	const BUBBLE_CONTENT_HEIGHT_RATIO = 490 / 1080;
 	const BLOB_PROFILES = [
 		[1, 0.96, 0.92, 1.04, 1.08, 1.02, 0.94, 0.9, 0.98, 1.06, 1.04, 0.96, 1.02, 0.93, 1.07, 1.01, 0.95, 1.03, 0.92, 0.98],
 		[0.95, 1.02, 1.08, 1.04, 0.96, 0.91, 0.94, 1.03, 1.06, 1.1, 1.02, 0.98, 0.94, 1.02, 0.9, 0.96, 1.04, 1.01, 0.92, 1.05],
@@ -478,12 +487,15 @@
 		const radiusX = (bounds.right - bounds.left) / 2 + BUBBLE_PADDING_X;
 		const radiusY = (bounds.bottom - bounds.top) / 2 + BUBBLE_PADDING_Y;
 
-		drawBlob(cluster.bubble, centerX, centerY, radiusX, radiusY, cluster.id, cluster.color);
+		cluster.bubble.position.set(centerX, centerY);
+		cluster.bubble.width = (radiusX * 2) / BUBBLE_CONTENT_WIDTH_RATIO;
+		cluster.bubble.height = (radiusY * 2) / BUBBLE_CONTENT_HEIGHT_RATIO;
 	}
 
 	function buildClusters(
 		textResolution: number,
-		neuronTextures: (Texture | undefined)[]
+		neuronTextures: (Texture | undefined)[],
+		bubbleTextures: (Texture | undefined)[]
 	): Cluster[] {
 		const brainColors = [1, 2, 3, 4, 5].map((n) => readCssColor(`--color-brain-${n}`, '#c8ddf2'));
 		const textColor = readCssColor(LABEL_COLOR, '#181c21');
@@ -494,10 +506,10 @@
 			container.sortableChildren = true;
 			container.eventMode = 'static';
 			container.cursor = 'pointer';
-			const bubble = new Graphics();
+			const bubble = new Sprite(bubbleTextures[index] ?? Texture.EMPTY);
 			bubble.zIndex = 0;
-			bubble.eventMode = 'static';
-			bubble.cursor = 'pointer';
+			bubble.anchor.set(0.5);
+			bubble.eventMode = 'none';
 			const links = new Graphics();
 			links.zIndex = 1;
 			container.addChild(bubble, links);
@@ -541,7 +553,7 @@
 			)
 			.fill({ color, alpha: 1 });
 		mainLabelHighlight.zIndex = TEXT_Z_INDEX - 1;
-		const neuronAssetIndex = index % NEURON_ASSETS.length;
+			const neuronAssetIndex = section.id - 1;
 			const mainImage = createNodeImage(
 				neuronTextures[neuronAssetIndex],
 				MAIN_NODE_ASSET_SIZE,
@@ -794,12 +806,13 @@
 			});
 
 			const neuronTextures = await Promise.all(NEURON_ASSETS.map((asset) => loadNodeTexture(asset)));
+			const bubbleTextures = await Promise.all(BUBBLE_ASSETS.map((asset) => loadNodeTexture(asset)));
 			if (cancelled) {
 				instance.destroy({ releaseGlobalResources: true }, { children: true, texture: true, textureSource: true });
 				return;
 			}
 
-			clusters = buildClusters(rendererResolution * TEXT_RESOLUTION_SCALE, neuronTextures);
+			clusters = buildClusters(rendererResolution * TEXT_RESOLUTION_SCALE, neuronTextures, bubbleTextures);
 			clusters.forEach((cluster) => worldContainer.addChild(cluster.container));
 			computeLayout(instance.screen.width, instance.screen.height);
 

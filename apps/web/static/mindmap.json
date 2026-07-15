@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "Memories",
+    "name": "Le Toucher/Das Fühlen",
     "anchor": { "x": 0.25, "y": 0.3 },
     "rotationSpeed": 0.12,
     "image": "",
@@ -16,7 +16,7 @@
 
   {
     "id": 2,
-    "name": "People",
+    "name": "La Vue/Das Sehen",
     "anchor": { "x": 0.73, "y": 0.22 },
     "rotationSpeed": -0.1,
     "phrases": [
@@ -30,7 +30,7 @@
   },
   {
     "id": 3,
-    "name": "Places",
+    "name": "L’Ouïe/Das Hören",
     "anchor": { "x": 0.2, "y": 0.73 },
     "rotationSpeed": 0.09,
     "phrases": [
@@ -46,7 +46,7 @@
   },
   {
     "id": 4,
-    "name": "Objects",
+    "name": "Le Goût/Das Schmecken",
     "anchor": { "x": 0.8, "y": 0.72 },
     "rotationSpeed": -0.11,
     "phrases": [
@@ -62,7 +62,7 @@
   },
   {
     "id": 5,
-    "name": "Feelings",
+    "name": "L'Odorat/Das Riechen",
     "anchor": { "x": 0.5, "y": 0.48 },
     "rotationSpeed": 0.08,
     "phrases": [

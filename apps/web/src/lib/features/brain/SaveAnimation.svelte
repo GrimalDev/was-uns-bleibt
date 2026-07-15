@@ -30,7 +30,7 @@
 		place-items: center;
 		width: 100%;
 		height: 100%;
-    background: url('/style/backgrounds/fill_background.png') no-repeat center;
+    background: url('/style/backgrounds/filler_background.png') no-repeat center;
     background-size: cover;
 		color: white;
 
