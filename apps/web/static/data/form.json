@@ -1,38 +1,81 @@
 [
   {
     "id": 1,
-    "name": "part 1",
+    "name": "Lobe frontal",
     "options": [
       {
         "id": 1,
-        "titre": "What *memory* or *thought* would you like to leave here ?",
-        "placeholder": "Someone giving"
+        "titre": "De qui te **manque** le** rire** ?",
+        "placeholder": "Le rire qui me manque vient de..."
       },
       {
         "id": 2,
-        "titre": "Who *tought* you to *play* your favorite *game* ?",
-        "placeholder": "My step dad"
-      },
-      {
-        "id": 3,
-        "titre": "*trou* du *cul*",
-        "placeholder": "test"
+        "titre": "À qui aurais-tu voulu dire **merci** ?",
+        "placeholder": "Je voudrais dire merci à..."
       }
     ]
   },
   {
     "id": 2,
-    "name": "part 2",
+    "name": "Lobe pariétal",
     "options": [
       {
         "id": 1,
-        "titre": "*trou* du *cul*",
-        "placeholder": "test"
+        "titre": "Quel **endroit** associes-tu à quelqu'un qui te **manque** ?",
+        "placeholder": "Le lieu qui garde encore sa présence est..."
       },
       {
         "id": 2,
-        "titre": "",
-        "placeholder": ""
+        "titre": "Où est le **dernier endroit** que tu as **visité** avec une personne qui te manque ?",
+        "placeholder": "Le dernier endroit visité ensemble est..."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Lobe temporal",
+    "options": [
+      {
+        "id": 1,
+        "titre": "Quelle** chanson** te bouleverse encore ?",
+        "placeholder": "La chanson qui me bouleverse est..."
+      },
+      {
+        "id": 2,
+        "titre": "Quels **derniers mots** résonnent encore ?",
+        "placeholder": "Les derniers mots que j'entends sont..."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Cervelet",
+    "options": [
+      {
+        "id": 1,
+        "titre": "Quel **objet** touches-tu pour te sentir** proche** de quelqu'un qui te manque ?",
+        "placeholder": "L'objet que je touche est..."
+      },
+      {
+        "id": 2,
+        "titre": "Quel** geste** voudrais-tu **ressentir/voir** une dernière fois ?",
+        "placeholder": "Le geste que je voudrais revivre est..."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Bulbe olfactif",
+    "options": [
+      {
+        "id": 1,
+        "titre": "Quelle **odeur** te ramène à quelqu'un ?",
+        "placeholder": "L'odeur qui me ramène à quelqu'un est..."
+      },
+      {
+        "id": 2,
+        "titre": "Quel **plat** te manque car la personne qui le **cuisinait** n'est plus là ?",
+        "placeholder": "Le plat qui me manque est..."
       }
     ]
   }

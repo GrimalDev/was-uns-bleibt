@@ -3,11 +3,7 @@
 </svelte:head>
 
 <script lang="ts">
-	import FormOverlay from '$lib/components/FormOverlay.svelte';
-
-	const isFormOverlayOpen = true;
+	import BrainExperience from '$lib/features/brain/BrainExperience.svelte';
 </script>
 
-{#if isFormOverlayOpen}
-	<FormOverlay />
-{/if}
+<BrainExperience />

@@ -39,6 +39,7 @@
 		graphic: Graphics;
 		glow: Graphics;
 		label: Text;
+		labelHighlight: Graphics;
 		imageSrc?: string;
 		image?: Sprite;
 		labelWidth: number;
@@ -70,7 +71,8 @@
 	const SCENE_SCALE = 1.4;
 
 	const MAIN_NODE_CIRCLE_SIZE = 10 * SCENE_SCALE;
-	const MAIN_NODE_HIGHLIGHT_RADIUS = 60 * SCENE_SCALE;
+	const MAIN_NODE_HIGHLIGHT_RADIUS_X = 60 * SCENE_SCALE;
+	const MAIN_NODE_HIGHLIGHT_RADIUS_Y = 60 * SCENE_SCALE;
 	const MAIN_NODE_ALPHA = 1;
 	const MAIN_NODE_HIGHLIGHT_ALPHA = 0.2;
 	const NEURON_ASSETS = [neuron1Image, neuron2Image, neuron3Image, neuron4Image];
@@ -110,8 +112,8 @@
 	const CLUSTER_ZOOM_EASING = 0.12;
 	const TEXT_RESOLUTION_SCALE = 2.6;
 
-	const LABEL_PADDING_X = 12 * SCENE_SCALE;
-	const LABEL_PADDING_Y = 8 * SCENE_SCALE;
+	const LABEL_PADDING_X = 20 * SCENE_SCALE;
+	const LABEL_PADDING_Y = 4 * SCENE_SCALE;
 	const MAIN_LABEL_GAP = -70 * SCENE_SCALE;
 	const LABEL_COLLISION_ITERATIONS = 24;
 	const TEXT_Z_INDEX = 1_000;
@@ -415,9 +417,10 @@
 		centerX: number,
 		centerY: number,
 		radiusX: number,
-		radiusY: number,
-		profileIndex: number,
-		color: number
+		 radiusY: number,
+		 profileIndex: number,
+		 color: number,
+		 alpha = BUBBLE_ALPHA
 	) {
 		const profile = BLOB_PROFILES[profileIndex % BLOB_PROFILES.length];
 		const points = profile.map((radius, index) => {
@@ -448,7 +451,7 @@
 			);
 		});
 
-		graphic.closePath().fill({ color, alpha: BUBBLE_ALPHA });
+		graphic.closePath().fill({ color, alpha });
 	}
 
 	function updateClusterBubble(cluster: Cluster) {
@@ -499,16 +502,24 @@
 			links.zIndex = 1;
 			container.addChild(bubble, links);
 
-			const mainGlow = new Graphics()
-				.circle(0, 0, MAIN_NODE_HIGHLIGHT_RADIUS)
-				.fill({ color, alpha: MAIN_NODE_HIGHLIGHT_ALPHA });
+			const mainGlow = new Graphics();
+			drawBlob(
+				mainGlow,
+				0,
+				0,
+				MAIN_NODE_HIGHLIGHT_RADIUS_X,
+				MAIN_NODE_HIGHLIGHT_RADIUS_Y,
+				section.id,
+				color,
+				MAIN_NODE_HIGHLIGHT_ALPHA
+			);
 
 			const mainGraphic = new Graphics()
 				.circle(0, 0, MAIN_NODE_CIRCLE_SIZE)
 			.fill({ color: NODE_FILL_COLOR, alpha: MAIN_NODE_ALPHA });
 			mainGraphic.eventMode = 'none';
 
-			const mainLabel = new Text({
+		const mainLabel = new Text({
 				text: section.name,
 				resolution: textResolution,
 				style: {
@@ -517,17 +528,27 @@
 					fontWeight: '600',
 					fill: textColor
 				}
-			});
-			mainLabel.anchor.set(0.5, 0);
-			mainLabel.zIndex = TEXT_Z_INDEX;
-			const neuronAssetIndex = index % NEURON_ASSETS.length;
+		});
+		mainLabel.anchor.set(0.5, 0);
+		mainLabel.zIndex = TEXT_Z_INDEX;
+		const mainLabelHighlight = new Graphics()
+			.roundRect(
+				-mainLabel.getLocalBounds().width / 2 - LABEL_PADDING_X,
+				-LABEL_PADDING_Y,
+				mainLabel.getLocalBounds().width + LABEL_PADDING_X * 2,
+				mainLabel.getLocalBounds().height + LABEL_PADDING_Y * 2,
+				LABEL_PADDING_Y
+			)
+			.fill({ color, alpha: 1 });
+		mainLabelHighlight.zIndex = TEXT_Z_INDEX - 1;
+		const neuronAssetIndex = index % NEURON_ASSETS.length;
 			const mainImage = createNodeImage(
 				neuronTextures[neuronAssetIndex],
 				MAIN_NODE_ASSET_SIZE,
 				MAIN_NODE_ASSET_ALPHA
 			);
 
-			container.addChild(mainGlow, mainGraphic);
+			container.addChild(mainGlow, mainGraphic, mainLabelHighlight);
 			if (mainImage) container.addChild(mainImage);
 			container.addChild(mainLabel);
 
@@ -535,6 +556,7 @@
 				graphic: mainGraphic,
 				glow: mainGlow,
 				label: mainLabel,
+				labelHighlight: mainLabelHighlight,
 				imageSrc: NEURON_ASSETS[neuronAssetIndex],
 				image: mainImage,
 				labelWidth: mainLabel.getLocalBounds().width,
@@ -565,7 +587,8 @@
 					resolution: textResolution,
 					style: {
 						fontFamily: 'var(--font-body)',
-						fontSize: 11 * SCENE_SCALE,
+						fontSize: 12 * SCENE_SCALE,
+						fontWeight: '700',
 						fill: textColor,
 						align: 'center'
 					}
@@ -700,6 +723,10 @@
 				cluster.main.image.rotation = rotation;
 			}
 			cluster.main.label.position.set(
+				cluster.main.x,
+				cluster.main.y + getLabelOffset(cluster.main, MAIN_NODE_CIRCLE_SIZE, MAIN_LABEL_GAP)
+			);
+			cluster.main.labelHighlight.position.set(
 				cluster.main.x,
 				cluster.main.y + getLabelOffset(cluster.main, MAIN_NODE_CIRCLE_SIZE, MAIN_LABEL_GAP)
 			);
