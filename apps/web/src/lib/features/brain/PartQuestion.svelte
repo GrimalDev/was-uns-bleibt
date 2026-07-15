@@ -4,7 +4,7 @@
 	import type { BrainPartId } from './brain-flow';
 	import { loadFormDefinition, selectRandomOption, type FormPart } from './form-data';
 
-	const MAX_ANSWER_LENGTH = 25;
+	const MAX_ANSWER_LENGTH = 40;
 
 	export let partId: BrainPartId;
 	export let onAnswer: (answer: string) => void;
@@ -52,27 +52,29 @@
 				</h1>
 			</div>
 
-			<label class="answer-field">
-				<span class="sr-only">Your answer</span>
-				<input
-					bind:value={answer}
-					type="text"
-					name="answer"
-					autocomplete="off"
-					placeholder={questionPlaceholder}
-					maxlength={MAX_ANSWER_LENGTH}
-					aria-describedby="answer-character-count"
-					required
-				/>
+			<div class="answer-field">
+				<label>
+					<span class="sr-only">Your answer</span>
+					<input
+						bind:value={answer}
+						type="text"
+						name="answer"
+						autocomplete="off"
+						placeholder={questionPlaceholder}
+						maxlength={MAX_ANSWER_LENGTH}
+						aria-describedby="answer-character-count"
+						required
+					/>
+				</label>
 				<p
 					id="answer-character-count"
 					class:maxed={answer.length >= MAX_ANSWER_LENGTH}
 					class="character-count"
 					aria-live="polite"
 				>
-					{answer.length} / {MAX_ANSWER_LENGTH}
+					Max: {answer.length} / {MAX_ANSWER_LENGTH}
 				</p>
-			</label>
+			</div>
 		</form>
 	</div>
 </div>

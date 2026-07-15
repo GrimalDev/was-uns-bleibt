@@ -77,14 +77,21 @@
 .answer-field {
   display: block;
 
+  label {
+    display: block;
+  }
+
   .character-count {
-    margin: 0.5rem 0.25rem 0;
+    width: fit-content;
+    margin: 0.5rem 0.25rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(24, 28, 33, 0.72);
     font-family: var(--font-body);
     font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
     line-height: 1;
-    text-align: right;
-    color: var(--color-on-surface-variant);
+    color: var(--color-on-primary);
     transition: color 160ms ease;
 
     &.maxed {
