@@ -3,77 +3,31 @@
     "id": 1,
     "name": "Le Toucher/Das Fühlen",
     "anchor": { "x": 0.25, "y": 0.3 },
-    "rotationSpeed": 0.12,
-    "image": "",
-    "phrases": [
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "Someone Giving",
-      "Playful Moments"
-    ]
+    "rotationSpeed": 0.12
   },
 
   {
     "id": 2,
     "name": "La Vue/Das Sehen",
     "anchor": { "x": 0.73, "y": 0.22 },
-    "rotationSpeed": -0.1,
-    "phrases": [
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "Family Ties",
-      "Guiding Mentors",
-      "Kindred Spirits"
-    ]
+    "rotationSpeed": -0.1
   },
   {
     "id": 3,
     "name": "L’Ouïe/Das Hören",
     "anchor": { "x": 0.2, "y": 0.73 },
-    "rotationSpeed": 0.09,
-    "phrases": [
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "Childhood Home",
-      "Favorite Getaway",
-      "Quiet Corners",
-      "Old Streets",
-      "Family Table"
-    ]
+    "rotationSpeed": 0.09
   },
   {
     "id": 4,
     "name": "Le Goût/Das Schmecken",
     "anchor": { "x": 0.8, "y": 0.72 },
-    "rotationSpeed": -0.11,
-    "phrases": [
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "Old Photograph",
-      "Handwritten Letter",
-      "Worn Keepsake",
-      "Family Heirloom",
-      "Small Trinket"
-    ]
+    "rotationSpeed": -0.11
   },
   {
     "id": 5,
     "name": "L'Odorat/Das Riechen",
     "anchor": { "x": 0.5, "y": 0.48 },
-    "rotationSpeed": 0.08,
-    "phrases": [
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "I’d like to thank everyonee",
-      "Quiet Gratitude",
-      "Bittersweet Joy",
-      "Warm Nostalgia",
-      "Gentle Longing",
-      "Lasting Comfort"
-    ]
+    "rotationSpeed": 0.08
   }
 ]

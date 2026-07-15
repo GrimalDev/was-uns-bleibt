@@ -8,13 +8,23 @@
   height: 100%;
   overflow: hidden;
 
-  polygon {
-    fill: transparent;
-    cursor: pointer;
+  .brain-part {
+    polygon {
+      fill: var(--part-color);
+      fill-opacity: 0;
+      cursor: pointer;
+      transition: fill-opacity 160ms ease;
 
-    &:hover,
-    &:focus-visible {
-      outline: none;
+      &:hover,
+      &:focus-visible {
+        fill-opacity: 0.2;
+        outline: none;
+      }
+    }
+
+    &:hover .brain-label,
+    &:focus-within .brain-label {
+      stroke-width: 14px;
     }
   }
 

@@ -68,36 +68,41 @@
 	<div class="brain-image">
 		<LanguageSelector />
 		<svg viewBox="0 0 910 512" xmlns="http://www.w3.org/2000/svg" aria-labelledby="brain-view-title">
-		<image href="/style/animations/brain_loop.gif" width="910" height="512" />
-		{#each hotspots as hotspot (hotspot.id)}
-			<polygon
-				points={hotspot.points}
-				role="button"
-				tabindex="0"
-				aria-label={partNames[hotspot.id]}
-				on:click={() => onSelectPart(hotspot.id)}
-				on:keydown={(event) => handleKeydown(event, hotspot.id)}
-			/>
-			<text
-				x={labelPositions[hotspot.id].x}
-				y={labelPositions[hotspot.id].y}
-				class="brain-label"
-				style={`--label-highlight: var(--color-brain-${hotspot.id});`}
-				text-anchor="middle"
-				dominant-baseline="middle"
-				pointer-events="none"
-			>
-				{#if wrappedLabels[hotspot.id]}
-					{#each wrappedLabels[hotspot.id] as line, index (index)}
-						<tspan x={labelPositions[hotspot.id].x} dy={index === 0 ? '-0.55em' : '1.1em'}>
-							{line}
-						</tspan>
-					{/each}
-				{:else}
-					{partNames[hotspot.id]}
-				{/if}
-			</text>
-		{/each}
+			<image href="/style/animations/brain_loop.gif" width="910" height="512" />
+			{#each hotspots as hotspot (hotspot.id)}
+				<g
+					class="brain-part"
+					style={`--part-color: var(--color-brain-${hotspot.id});`}
+				>
+					<polygon
+						points={hotspot.points}
+						role="button"
+						tabindex="0"
+						aria-label={partNames[hotspot.id]}
+						on:click={() => onSelectPart(hotspot.id)}
+						on:keydown={(event) => handleKeydown(event, hotspot.id)}
+					/>
+					<text
+						x={labelPositions[hotspot.id].x}
+						y={labelPositions[hotspot.id].y}
+						class="brain-label"
+						style={`--label-highlight: var(--color-brain-${hotspot.id});`}
+						text-anchor="middle"
+						dominant-baseline="middle"
+						pointer-events="none"
+					>
+						{#if wrappedLabels[hotspot.id]}
+							{#each wrappedLabels[hotspot.id] as line, index (index)}
+								<tspan x={labelPositions[hotspot.id].x} dy={index === 0 ? '-0.55em' : '1.1em'}>
+									{line}
+								</tspan>
+							{/each}
+						{:else}
+							{partNames[hotspot.id]}
+						{/if}
+					</text>
+				</g>
+			{/each}
 		</svg>
 	</div>
 </section>

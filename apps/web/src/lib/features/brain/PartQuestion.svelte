@@ -37,9 +37,16 @@
 		await loadFormDefinition();
 	});
 
-	function submitAnswer() {
+	async function submitAnswer() {
 		const trimmedAnswer = answer.trim();
 		if (!trimmedAnswer) return;
+
+		const response = await fetch('/api/answers', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ brain_part_id: partId, phrase: trimmedAnswer })
+		});
+		if (!response.ok) return;
 
 		onAnswer(trimmedAnswer);
 	}

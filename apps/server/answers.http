@@ -1,0 +1,50 @@
+### Health check
+GET http://localhost:8080/api/health
+
+### List all answers
+GET http://localhost:8080/api/answers
+
+### Create answer
+POST http://localhost:8080/api/answers
+Content-Type: application/json
+
+{
+  "brain_part_id": 1,
+  "phrase": "A remembered moment"
+}
+
+### Create answer for another brain part
+POST http://localhost:8080/api/answers
+Content-Type: application/json
+
+{
+  "brain_part_id": 2,
+  "phrase": "Someone who mattered"
+}
+
+### Validation: invalid brain part ID
+POST http://localhost:8080/api/answers
+Content-Type: application/json
+
+{
+  "brain_part_id": 0,
+  "phrase": "This should fail"
+}
+
+### Validation: empty phrase
+POST http://localhost:8080/api/answers
+Content-Type: application/json
+
+{
+  "brain_part_id": 1,
+  "phrase": ""
+}
+
+### Validation: phrase longer than 40 characters
+POST http://localhost:8080/api/answers
+Content-Type: application/json
+
+{
+  "brain_part_id": 1,
+  "phrase": "This phrase contains more than forty characters"
+}

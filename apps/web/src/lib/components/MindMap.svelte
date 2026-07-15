@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { Application, Assets, Container, Graphics, Sprite, Text, Texture, Color, BlurFilter } from 'pixi.js';
 	import neuron1Image from '$lib/assets/neurons/neuron_1.png';
 	import neuron2Image from '$lib/assets/neurons/neuron_2.png';
@@ -21,6 +22,11 @@
 		};
 		rotationSpeed: number;
 		phrases: string[];
+	};
+
+	type Answer = {
+		brain_part_id: number;
+		phrase: string;
 	};
 
 	type LeafNode = {
@@ -531,15 +537,16 @@
 			.fill({ color: NODE_FILL_COLOR, alpha: MAIN_NODE_ALPHA });
 			mainGraphic.eventMode = 'none';
 
-		const mainLabel = new Text({
-				text: section.name,
+			const mainLabel = new Text({
+					text: section.name.split('/').map((part) => part.trim()).join('\n'),
 				resolution: textResolution,
-				style: {
-					fontFamily: 'var(--font-body)',
-					fontSize: 15 * SCENE_SCALE,
-					fontWeight: '600',
-					fill: textColor
-				}
+					style: {
+						fontFamily: 'var(--font-body)',
+						fontSize: 15 * SCENE_SCALE,
+						fontWeight: '600',
+						fill: textColor,
+						align: 'center'
+					}
 		});
 		mainLabel.anchor.set(0.5, 0);
 		mainLabel.zIndex = TEXT_Z_INDEX;
@@ -773,7 +780,27 @@
 		(async () => {
 			const dataResponse = await fetch('/mindmap.json');
 			if (!dataResponse.ok) return;
-			sections = (await dataResponse.json()) as MindMapSection[];
+
+			const mindMapSections = (await dataResponse.json()) as Omit<MindMapSection, 'phrases'>[];
+			let answers: Answer[] = [];
+			try {
+				const answersResponse = await fetch('/api/answers');
+				if (answersResponse.ok) answers = (await answersResponse.json()) as Answer[];
+        console.log('Fetched answers:', answers);
+			} catch {
+				answers = [];
+			}
+
+			const phrasesByPartId = new SvelteMap<number, string[]>();
+			for (const answer of answers) {
+				const phrases = phrasesByPartId.get(answer.brain_part_id) ?? [];
+				phrases.push(answer.phrase);
+				phrasesByPartId.set(answer.brain_part_id, phrases);
+			}
+			sections = mindMapSections.map((section) => ({
+				...section,
+				phrases: phrasesByPartId.get(section.id) ?? []
+			}));
 
 			const instance = new Application();
 			const rendererResolution = Math.min(window.devicePixelRatio || 1, 2);

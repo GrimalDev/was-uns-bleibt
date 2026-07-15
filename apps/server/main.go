@@ -1,25 +1,25 @@
 package main
 
 import (
-	"embed"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
-//go:embed web/*
-var embeddedWeb embed.FS
-
 func main() {
 	port := env("PORT", "8080")
+	databasePath := env("DATABASE_PATH", "data/wub.db")
 
-	staticFS, err := fs.Sub(embeddedWeb, "web")
+	db, err := openDatabase(databasePath)
 	if err != nil {
-		log.Fatalf("static fs setup failed: %v", err)
+		log.Fatalf("database setup failed: %v", err)
+	}
+	defer db.Close()
+
+	if err := migrateDatabase(db); err != nil {
+		log.Fatalf("database migration failed: %v", err)
 	}
 
 	server := echo.New()
@@ -27,24 +27,14 @@ func main() {
 	server.HidePort = true
 
 	server.GET("/api/health", func(c echo.Context) error {
+		if err := db.PingContext(c.Request().Context()); err != nil {
+			return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "error"})
+		}
+
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
-
-	assetHandler := http.FileServer(http.FS(staticFS))
-	server.GET("/*", func(c echo.Context) error {
-		requestPath := strings.TrimPrefix(c.Request().URL.Path, "/")
-		if requestPath == "" {
-			assetHandler.ServeHTTP(c.Response(), c.Request())
-			return nil
-		}
-
-		if _, err := fs.Stat(staticFS, requestPath); err == nil {
-			assetHandler.ServeHTTP(c.Response(), c.Request())
-			return nil
-		}
-
-		return c.FileFS("index.html", http.FS(staticFS))
-	})
+	server.POST("/api/answers", createAnswerHandler(db))
+	server.GET("/api/answers", listAnswersHandler(db))
 
 	addr := ":" + port
 	log.Printf("server listening on %s", addr)
