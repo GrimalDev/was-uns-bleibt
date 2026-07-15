@@ -1,81 +1,156 @@
 [
   {
     "id": 1,
-    "name": "Lobe frontal",
+    "name": {
+      "FR": "Lobe frontal",
+      "DE": "Frontallappen"
+    },
     "options": [
       {
         "id": 1,
-        "titre": "De qui te **manque** le** rire** ?",
-        "placeholder": "Le rire qui me manque vient de..."
+        "titre": {
+          "FR": "De qui te **manque** le** rire** ?",
+          "DE": "Wessen **Lachen** **fehlt** dir?"
+        },
+        "placeholder": {
+          "FR": "Le rire qui me manque vient de...",
+          "DE": "Das Lachen, das mir fehlt, kommt von ..."
+        }
       },
       {
         "id": 2,
-        "titre": "À qui aurais-tu voulu dire **merci** ?",
-        "placeholder": "Je voudrais dire merci à..."
+        "titre": {
+          "FR": "À qui aurais-tu voulu dire **merci** ?",
+          "DE": "Wem hättest du gerne **Danke** gesagt?"
+        },
+        "placeholder": {
+          "FR": "Je voudrais dire merci à...",
+          "DE": "Ich möchte ... Danke sagen."
+        }
       }
     ]
   },
   {
     "id": 2,
-    "name": "Lobe pariétal",
+    "name": {
+      "FR": "Lobe pariétal",
+      "DE": "Parietallappen"
+    },
     "options": [
       {
         "id": 1,
-        "titre": "Quel **endroit** associes-tu à quelqu'un qui te **manque** ?",
-        "placeholder": "Le lieu qui garde encore sa présence est..."
+        "titre": {
+          "FR": "Quel **endroit** associes-tu à quelqu'un qui te **manque** ?",
+          "DE": "Mit welchem **Ort** verbindest du jemanden, der dir **fehlt**?"
+        },
+        "placeholder": {
+          "FR": "Le lieu qui garde encore sa présence est...",
+          "DE": "Der Ort, der seine Anwesenheit noch bewahrt, ist ..."
+        }
       },
       {
         "id": 2,
-        "titre": "Où est le **dernier endroit** que tu as **visité** avec une personne qui te manque ?",
-        "placeholder": "Le dernier endroit visité ensemble est..."
+        "titre": {
+          "FR": "Où est le **dernier endroit** que tu as **visité** avec une personne qui te manque ?",
+          "DE": "Wo ist der **letzte Ort**, den du mit einer Person, die dir fehlt, **besucht** hast?"
+        },
+        "placeholder": {
+          "FR": "Le dernier endroit visité ensemble est...",
+          "DE": "Der letzte Ort, den wir gemeinsam besucht haben, ist ..."
+        }
       }
     ]
   },
   {
     "id": 3,
-    "name": "Lobe temporal",
+    "name": {
+      "FR": "Lobe temporal",
+      "DE": "Temporallappen"
+    },
     "options": [
       {
         "id": 1,
-        "titre": "Quelle** chanson** te bouleverse encore ?",
-        "placeholder": "La chanson qui me bouleverse est..."
+        "titre": {
+          "FR": "Quelle** chanson** te bouleverse encore ?",
+          "DE": "Welches **Lied** berührt dich noch immer?"
+        },
+        "placeholder": {
+          "FR": "La chanson qui me bouleverse est...",
+          "DE": "Das Lied, das mich berührt, ist ..."
+        }
       },
       {
         "id": 2,
-        "titre": "Quels **derniers mots** résonnent encore ?",
-        "placeholder": "Les derniers mots que j'entends sont..."
+        "titre": {
+          "FR": "Quels **derniers mots** résonnent encore ?",
+          "DE": "Welche **letzten Worte** klingen noch nach?"
+        },
+        "placeholder": {
+          "FR": "Les derniers mots que j'entends sont...",
+          "DE": "Die letzten Worte, die ich höre, sind ..."
+        }
       }
     ]
   },
   {
     "id": 4,
-    "name": "Cervelet",
+    "name": {
+      "FR": "Cervelet",
+      "DE": "Kleinhirn"
+    },
     "options": [
       {
         "id": 1,
-        "titre": "Quel **objet** touches-tu pour te sentir** proche** de quelqu'un qui te manque ?",
-        "placeholder": "L'objet que je touche est..."
+        "titre": {
+          "FR": "Quel **objet** touches-tu pour te sentir** proche** de quelqu'un qui te manque ?",
+          "DE": "Welchen **Gegenstand** berührst du, um dich jemandem, der dir fehlt, **nahe** zu fühlen?"
+        },
+        "placeholder": {
+          "FR": "L'objet que je touche est...",
+          "DE": "Der Gegenstand, den ich berühre, ist ..."
+        }
       },
       {
         "id": 2,
-        "titre": "Quel** geste** voudrais-tu **ressentir/voir** une dernière fois ?",
-        "placeholder": "Le geste que je voudrais revivre est..."
+        "titre": {
+          "FR": "Quel** geste** voudrais-tu **ressentir/voir** une dernière fois ?",
+          "DE": "Welche **Geste** möchtest du ein letztes Mal **spüren/sehen**?"
+        },
+        "placeholder": {
+          "FR": "Le geste que je voudrais revivre est...",
+          "DE": "Die Geste, die ich noch einmal erleben möchte, ist ..."
+        }
       }
     ]
   },
   {
     "id": 5,
-    "name": "Bulbe olfactif",
+    "name": {
+      "FR": "Bulbe olfactif",
+      "DE": "Riechkolben"
+    },
     "options": [
       {
         "id": 1,
-        "titre": "Quelle **odeur** te ramène à quelqu'un ?",
-        "placeholder": "L'odeur qui me ramène à quelqu'un est..."
+        "titre": {
+          "FR": "Quelle **odeur** te ramène à quelqu'un ?",
+          "DE": "Welcher **Geruch** erinnert dich an jemanden?"
+        },
+        "placeholder": {
+          "FR": "L'odeur qui me ramène à quelqu'un est...",
+          "DE": "Der Geruch, der mich an jemanden erinnert, ist ..."
+        }
       },
       {
         "id": 2,
-        "titre": "Quel **plat** te manque car la personne qui le **cuisinait** n'est plus là ?",
-        "placeholder": "Le plat qui me manque est..."
+        "titre": {
+          "FR": "Quel **plat** te manque car la personne qui le **cuisinait** n'est plus là ?",
+          "DE": "Welches **Gericht** fehlt dir, weil die Person, die es **gekocht** hat, nicht mehr da ist?"
+        },
+        "placeholder": {
+          "FR": "Le plat qui me manque est...",
+          "DE": "Das Gericht, das mir fehlt, ist ..."
+        }
       }
     ]
   }

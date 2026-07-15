@@ -2,13 +2,12 @@
 	import { onMount } from 'svelte';
 	import '$lib/styles/screens/brain-screen.scss';
 	import type { BrainPartId } from './brain-flow';
-	import { loadFormDefinition, type FormPart } from './form-data';
+	import { formDefinition, loadFormDefinition } from './form-data';
 
 	export let onSelectPart: (partId: BrainPartId) => void;
 
-	let formDefinition: FormPart[] = [];
 	let partNames: Record<number, string> = {};
-	const wrappedLabels: Record<number, string[]> = {}
+	const wrappedLabels: Record<number, string[]> = {};
 	const labelPositions: Record<BrainPartId, { x: number; y: number }> = {
 		1: { x: 390, y: 130 },
 		2: { x: 615, y: 190 },
@@ -51,13 +50,15 @@
 		onSelectPart(partId);
 	}
 
-	onMount(async () => {
-		formDefinition = await loadFormDefinition();
-		partNames = Object.fromEntries(formDefinition.map((part) => [part.id, part.name]));
-		// partNames = Object.fromEntries(formDefinition.map((part) => [part.id, part.name.slice(0,part.name.length-1)+part.id]));
+	$: if ($formDefinition.length > 0) {
+		partNames = Object.fromEntries(
+			$formDefinition.map((part) => [part.id, part.name])
+		);
+		wrappedLabels[5] = partNames[5]?.split(' ') ?? [];
+	}
 
-    // Wrap label 5 for better visibility
-    wrappedLabels[5] = partNames[5].split(' ')
+	onMount(async () => {
+		await loadFormDefinition();
 	});
 </script>
 

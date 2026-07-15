@@ -2,30 +2,38 @@
 	import { onMount } from 'svelte';
 	import '$lib/styles/screens/question-screen.scss';
 	import type { BrainPartId } from './brain-flow';
-	import { loadFormDefinition, selectRandomOption, type FormPart } from './form-data';
+	import { formDefinition, loadFormDefinition, selectRandomOption } from './form-data';
 
 	const MAX_ANSWER_LENGTH = 40;
 
 	export let partId: BrainPartId;
 	export let onAnswer: (answer: string) => void;
 
-	let formDefinition: FormPart[] = [];
 	let answer = '';
+	let selectedPartId: BrainPartId | null = null;
+	let selectedOptionId: number | null = null;
 	let questionTitle = 'What memory or thought would you like to leave here?';
 	let questionPlaceholder =
 		'For example: I still remember the warmth of your voice — type your own answer...';
 
-	$: if (formDefinition.length > 0) {
-		const selectedOption = selectRandomOption(formDefinition, partId);
-		questionTitle = selectedOption?.titre || questionTitle;
-		questionPlaceholder = selectedOption?.placeholder || questionPlaceholder;
+	$: if ($formDefinition.length > 0 && selectedPartId !== partId) {
+		selectedPartId = partId;
+		selectedOptionId = selectRandomOption($formDefinition, partId)?.id ?? null;
 	}
+
+	$: selectedOption = $formDefinition
+		.find((part) => part.id === partId)
+		?.options.find((option) => option.id === selectedOptionId);
+	$: questionTitle = selectedOption?.titre || 'What memory or thought would you like to leave here?';
+	$: questionPlaceholder =
+		selectedOption?.placeholder ||
+		'For example: I still remember the warmth of your voice — type your own answer...';
 
 	$: questionSegments = questionTitle.match(/\*[^*]+\*|[^*]+/g) ?? [questionTitle];
 	$: questionAccent = `var(--color-brain-${partId})`;
 
 	onMount(async () => {
-		formDefinition = await loadFormDefinition();
+		await loadFormDefinition();
 	});
 
 	function submitAnswer() {
@@ -36,7 +44,7 @@
 	}
 </script>
 
-<div class="form-page" aria-label="question view" data-form-sections={formDefinition.length}>
+<div class="form-page" aria-label="question view" data-form-sections={$formDefinition.length}>
 	<div class="prompt-layer fade-from-black" style={`--question-accent: ${questionAccent};`}>
 		<form class="prompt-card" aria-label="question input panel" on:submit|preventDefault={submitAnswer}>
 			<div class="prompt-copy">
