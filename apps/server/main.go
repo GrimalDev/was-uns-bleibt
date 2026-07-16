@@ -28,6 +28,7 @@ func main() {
 	}
 
 	server := echo.New()
+	hub := answers.NewHub()
 	server.HideBanner = true
 	server.HidePort = true
 
@@ -38,8 +39,9 @@ func main() {
 
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
-	server.POST("/api/answers", answers.CreateHandler(db))
+	server.POST("/api/answers", answers.CreateHandler(db, hub))
 	server.GET("/api/answers", answers.ListHandler(db))
+	server.GET("/api/answers/ws", hub.Handler(db))
 
 	addr := ":" + port
 	log.Printf("server listening on %s", addr)

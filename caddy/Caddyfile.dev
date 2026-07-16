@@ -1,0 +1,11 @@
+http://:80 {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy server:8080
+	}
+
+	handle {
+		reverse_proxy web:5173
+	}
+}

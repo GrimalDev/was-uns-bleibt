@@ -25,8 +25,15 @@
 	};
 
 	type Answer = {
+		id: number;
 		brain_part_id: number;
 		phrase: string;
+	};
+
+	type AnswerEvent = {
+		type: 'snapshot' | 'answer';
+		answers?: Answer[];
+		answer?: Answer;
 	};
 
 	type LeafNode = {
@@ -153,6 +160,8 @@
 	let world: Container | undefined;
 	let resizeObserver: ResizeObserver | undefined;
 	let tickerCallback: ((ticker: { deltaTime: number }) => void) | undefined;
+	let answerSocket: WebSocket | undefined;
+	let textResolution = 0;
 
 	let focusedClusterId: number | null = null;
 
@@ -541,6 +550,94 @@
 		cluster.main.labelHighlight.position.set(labelX, labelY);
 	}
 
+	function createLeafNode(
+		phrase: string,
+		textResolution: number,
+		color: number,
+		leafLabelColor: number,
+		container: Container
+	): LeafNode {
+		const leafGlow = new Graphics().circle(0, 0, LEAF_NODE_GLOW_RADIUS).fill({
+			color,
+			alpha: LEAF_NODE_GLOW_OPACITY
+		});
+		const leafGraphic = new Graphics()
+			.circle(0, 0, LEAF_NODE_RADIUS)
+			.fill({ color: NODE_FILL_COLOR_HEX, alpha: LEAF_NODE_OPACITY });
+		const label = new Text({
+			text: phrase,
+			resolution: textResolution,
+			style: {
+				fontFamily: 'var(--font-body)',
+				fontSize: 12 * SCENE_SCALE_FACTOR,
+				fontWeight: '700',
+				fill: leafLabelColor,
+				align: 'center'
+			}
+		});
+		label.anchor.set(0.5, 0);
+		label.zIndex = LABEL_Z_INDEX;
+		label.alpha = 0.85;
+		container.addChild(leafGlow, leafGraphic, label);
+
+		const leaf: LeafNode = {
+			graphic: leafGraphic,
+			glow: leafGlow,
+			label,
+			labelWidth: label.getLocalBounds().width,
+			labelHeight: label.getLocalBounds().height,
+			homeX: 0,
+			homeY: 0,
+			x: 0,
+			y: 0,
+			vx: 0,
+			vy: 0,
+			phaseX: Math.random() * Math.PI * 2,
+			phaseY: Math.random() * Math.PI * 2
+		};
+		label.y = getLabelOffset(leaf, LEAF_NODE_RADIUS, 4 * SCENE_SCALE_FACTOR);
+		return leaf;
+	}
+
+	function syncAnswer(answer: Answer) {
+		const section = sections.find((candidate) => candidate.id === answer.brain_part_id);
+		const cluster = clusters.find((candidate) => candidate.id === answer.brain_part_id);
+		if (!section || !cluster || section.phrases.includes(answer.phrase)) return;
+
+		section.phrases = [...section.phrases, answer.phrase];
+		cluster.leaves.push(
+			createLeafNode(
+				answer.phrase,
+				textResolution,
+				cluster.color,
+				readCssColor(LEAF_LABEL_CSS_COLOR, '#404751'),
+				cluster.container
+			)
+		);
+	}
+
+	function syncAnswers(answers: Answer[]) {
+		for (const answer of answers) syncAnswer(answer);
+		if (app) computeLayout(app.screen.width, app.screen.height);
+	}
+
+	function connectAnswerSocket() {
+		const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+		answerSocket = new WebSocket(`${protocol}//${window.location.host}/api/answers/ws`);
+		answerSocket.addEventListener('message', (message) => {
+			if (typeof message.data !== 'string') return;
+
+			try {
+				const event = JSON.parse(message.data) as AnswerEvent;
+				if (event.type === 'snapshot') syncAnswers(event.answers ?? []);
+				if (event.type === 'answer' && event.answer) syncAnswer(event.answer);
+				if (event.type === 'answer' && app) computeLayout(app.screen.width, app.screen.height);
+			} catch {
+				return;
+			}
+		});
+	}
+
 	function buildClusters(
 		textResolution: number,
 		neuronTextures: (Texture | undefined)[],
@@ -635,51 +732,9 @@
 			};
 			mainLabel.y = getLabelOffset(main, MAIN_NODE_RADIUS, MAIN_LABEL_VERTICAL_GAP);
 
-			const leaves: LeafNode[] = section.phrases.map((phrase) => {
-				const leafGlow = new Graphics().circle(0, 0, LEAF_NODE_GLOW_RADIUS).fill({
-					color,
-					alpha: LEAF_NODE_GLOW_OPACITY
-				});
-
-				const leafGraphic = new Graphics()
-					.circle(0, 0, LEAF_NODE_RADIUS)
-					.fill({ color: NODE_FILL_COLOR_HEX, alpha: LEAF_NODE_OPACITY });
-
-				const label = new Text({
-					text: phrase,
-					resolution: textResolution,
-					style: {
-						fontFamily: 'var(--font-body)',
-						fontSize: 12 * SCENE_SCALE_FACTOR,
-						fontWeight: '700',
-						fill: leafLabelColor,
-						align: 'center'
-					}
-				});
-			label.anchor.set(0.5, 0);
-				label.zIndex = LABEL_Z_INDEX;
-			label.alpha = 0.85;
-				container.addChild(leafGlow, leafGraphic);
-				container.addChild(label);
-
-				const leaf = {
-					graphic: leafGraphic,
-					glow: leafGlow,
-					label,
-					labelWidth: label.getLocalBounds().width,
-					labelHeight: label.getLocalBounds().height,
-					homeX: 0,
-					homeY: 0,
-					x: 0,
-					y: 0,
-					vx: 0,
-					vy: 0,
-					phaseX: Math.random() * Math.PI * 2,
-					phaseY: Math.random() * Math.PI * 2
-				};
-				label.y = getLabelOffset(leaf, LEAF_NODE_RADIUS, 4 * SCENE_SCALE_FACTOR);
-				return leaf;
-			});
+			const leaves = section.phrases.map((phrase) =>
+				createLeafNode(phrase, textResolution, color, leafLabelColor, container)
+			);
 
 			container.on('pointertap', (event) => {
 				event.stopPropagation();
@@ -821,22 +876,8 @@
 			const mindMapSections = (await dataResponse.json()) as Omit<MindMapSection, 'phrases'>[];
 			let answers: Answer[] = [];
 			try {
-				// const answersResponse = await fetch('/api/answers');
-				// if (answersResponse.ok) answers = (await answersResponse.json()) as Answer[];
-        //no fetch mock responses
-        let mockData = [];
-        for (let i = 0; i < 40; i++) {
-          mockData.push({
-            id: i + 1,
-            brain_part_id: (i % 5) + 1,
-            phrase: `Sample phrase ${i + 1}`
-          });
-        }
-
-        const mockResponse = {
-          json : async () => mockData
-        };
-        answers = (await mockResponse.json()) as Answer[];
+				const answersResponse = await fetch('/api/answers');
+				if (answersResponse.ok) answers = (await answersResponse.json()) as Answer[];
 			} catch {
 				answers = [];
 			}
@@ -890,8 +931,10 @@
 			}
 
 			clusters = buildClusters(rendererResolution * LABEL_RENDER_RESOLUTION_SCALE, neuronTextures, bubbleTextures);
+			textResolution = rendererResolution * LABEL_RENDER_RESOLUTION_SCALE;
 			clusters.forEach((cluster) => worldContainer.addChild(cluster.container));
 			computeLayout(instance.screen.width, instance.screen.height);
+			connectAnswerSocket();
 
 			tickerCallback = (ticker) => {
 				renderFrame(performance.now() - startTime, ticker.deltaTime);
@@ -908,6 +951,8 @@
 	});
 
 	onDestroy(() => {
+		answerSocket?.close();
+		answerSocket = undefined;
 		resizeObserver?.disconnect();
 		if (app) {
 			if (tickerCallback) app.ticker.remove(tickerCallback);

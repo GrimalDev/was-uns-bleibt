@@ -1,6 +1,7 @@
 package answers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -24,7 +25,7 @@ type answer struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-func CreateHandler(db *sql.DB) echo.HandlerFunc {
+func CreateHandler(db *sql.DB, hub *Hub) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var request createRequest
 		if err := c.Bind(&request); err != nil {
@@ -46,6 +47,7 @@ func CreateHandler(db *sql.DB) echo.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("create answer: %w", err)
 		}
+		hub.Broadcast(createdAnswer)
 
 		return c.JSON(http.StatusCreated, createdAnswer)
 	}
@@ -53,29 +55,38 @@ func CreateHandler(db *sql.DB) echo.HandlerFunc {
 
 func ListHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rows, err := db.QueryContext(c.Request().Context(), `
-			SELECT id, brain_part_id, phrase, created_at
-			FROM answers
-			ORDER BY created_at ASC, id ASC`)
+		items, err := list(c.Request().Context(), db)
 		if err != nil {
 			return fmt.Errorf("list answers: %w", err)
-		}
-		defer rows.Close()
-
-		items := make([]answer, 0)
-		for rows.Next() {
-			var item answer
-			if err := rows.Scan(&item.ID, &item.BrainPartID, &item.Phrase, &item.CreatedAt); err != nil {
-				return fmt.Errorf("scan answer: %w", err)
-			}
-			items = append(items, item)
-		}
-		if err := rows.Err(); err != nil {
-			return fmt.Errorf("iterate answers: %w", err)
 		}
 
 		return c.JSON(http.StatusOK, items)
 	}
+}
+
+func list(ctx context.Context, db *sql.DB) ([]answer, error) {
+	rows, err := db.QueryContext(ctx, `
+		SELECT id, brain_part_id, phrase, created_at
+		FROM answers
+		ORDER BY created_at ASC, id ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]answer, 0)
+	for rows.Next() {
+		var item answer
+		if err := rows.Scan(&item.ID, &item.BrainPartID, &item.Phrase, &item.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }
 
 func insert(c echo.Context, db *sql.DB, request createRequest) (answer, error) {

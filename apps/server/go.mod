@@ -3,6 +3,7 @@ module was-uns-bleibt/server
 go 1.24.0
 
 require (
+	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.4
 	modernc.org/sqlite v1.39.1
 )

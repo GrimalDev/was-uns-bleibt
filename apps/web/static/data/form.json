@@ -10,22 +10,22 @@
         "id": 1,
         "titre": {
           "FR": "Quel **endroit** associes-tu à quelqu'un qui te **manque** ?",
-          "DE": "Mit welchem **Ort** verbindest du jemanden, der dir **fehlt**?"
+          "DE": "Welchen **Gegenstand** hältst du in der Hand, wenn du jemanden **vermisst**?"
         },
         "placeholder": {
           "FR": "Le lieu qui garde encore sa présence est...",
-          "DE": "Der Ort, der seine Anwesenheit noch bewahrt, ist ..."
+          "DE": "Der Gegenstand, den ich in der Hand halte, ist ..."
         }
       },
       {
         "id": 2,
         "titre": {
           "FR": "Où est le **dernier endroit** que tu as **visité** avec une personne qui te manque ?",
-          "DE": "Wo ist der **letzte Ort**, den du mit einer Person, die dir fehlt, **besucht** hast?"
+          "DE": "Welche **Geste** würdest du gern noch einmal **spüren**?"
         },
         "placeholder": {
           "FR": "Le dernier endroit visité ensemble est...",
-          "DE": "Der letzte Ort, den wir gemeinsam besucht haben, ist ..."
+          "DE": "Die Geste, die ich noch einmal spüren möchte, ist ..."
         }
       }
     ]
@@ -41,22 +41,22 @@
         "id": 1,
         "titre": {
           "FR": "De qui te **manque** le **rire** ?",
-          "DE": "Wessen **Lachen** **fehlt** dir?"
+          "DE": "Wessen **Lächeln** vermisst du am meisten?"
         },
         "placeholder": {
           "FR": "Le rire qui me manque vient de...",
-          "DE": "Das Lachen, das mir fehlt, kommt von ..."
+          "DE": "Das Lächeln, das ich am meisten vermisse, ist das von ..."
         }
       },
       {
         "id": 2,
         "titre": {
           "FR": "À qui aurais-tu voulu dire **merci** ?",
-          "DE": "Wem hättest du gerne **Danke** gesagt?"
+          "DE": "Wenn du die Augen schließt, was macht die Person, die du vermisst?"
         },
         "placeholder": {
           "FR": "Je voudrais dire merci à...",
-          "DE": "Ich möchte ... Danke sagen."
+          "DE": "Sie ist gerade dabei zu ..."
         }
       }
     ]
@@ -72,7 +72,7 @@
         "id": 1,
         "titre": {
           "FR": "Quelle **chanson** te bouleverse encore ?",
-          "DE": "Welches **Lied** berührt dich noch immer?"
+          "DE": "Welches **Lied** berührt dich immer noch?"
         },
         "placeholder": {
           "FR": "La chanson qui me bouleverse est...",
@@ -83,11 +83,11 @@
         "id": 2,
         "titre": {
           "FR": "Quels **derniers mots** résonnent encore ?",
-          "DE": "Welche **letzten Worte** klingen noch nach?"
+          "DE": "Welche **letzten Worte** hallen in dir noch nach?"
         },
         "placeholder": {
           "FR": "Les derniers mots que j'entends sont...",
-          "DE": "Die letzten Worte, die ich höre, sind ..."
+          "DE": "Die letzten Worte, die ich immer noch manchmal höre, sind ..."
         }
       }
     ]
@@ -103,22 +103,22 @@
         "id": 1,
         "titre": {
           "FR": "Quel **objet** touches-tu pour te sentir **proche** de quelqu'un qui te manque ?",
-          "DE": "Welchen **Gegenstand** berührst du, um dich jemandem, der dir fehlt, **nahe** zu fühlen?"
+          "DE": "Welches **Gericht** vermisst du, weil es niemand mehr kocht?"
         },
         "placeholder": {
           "FR": "L'objet que je touche est...",
-          "DE": "Der Gegenstand, den ich berühre, ist ..."
+          "DE": "Das Gericht, das ich vermisse, ist ..."
         }
       },
       {
         "id": 2,
         "titre": {
           "FR": "Quel **geste** voudrais-tu **ressentir/voir** une dernière fois ?",
-          "DE": "Welche **Geste** möchtest du ein letztes Mal **spüren/sehen**?"
+          "DE": "Welches **Gericht** versetzt dich direkt zu einem Moment mit jemandem, den du vermisst?"
         },
         "placeholder": {
           "FR": "Le geste que je voudrais revivre est...",
-          "DE": "Die Geste, die ich noch einmal erleben möchte, ist ..."
+          "DE": "Das Gericht, das mich dorthin zurückversetzt, ist ..."
         }
       }
     ]
@@ -134,22 +134,22 @@
         "id": 1,
         "titre": {
           "FR": "Quelle **odeur** te ramène à quelqu'un ?",
-          "DE": "Welcher **Geruch** erinnert dich an jemanden?"
+          "DE": "Welcher **Geruch** steht für eine Person, die du vermisst?"
         },
         "placeholder": {
           "FR": "L'odeur qui me ramène à quelqu'un est...",
-          "DE": "Der Geruch, der mich an jemanden erinnert, ist ..."
+          "DE": "Der Geruch, der für diese Person steht, ist ..."
         }
       },
       {
         "id": 2,
         "titre": {
           "FR": "Quel **plat** te manque car la personne qui le **cuisinait** n'est plus là ?",
-          "DE": "Welches **Gericht** fehlt dir, weil die Person, die es **gekocht** hat, nicht mehr da ist?"
+          "DE": "Welcher **Geruch** ruft sofort Erinnerungen an einen Ort hervor, an dem ihr gemeinsam wart?"
         },
         "placeholder": {
           "FR": "Le plat qui me manque est...",
-          "DE": "Das Gericht, das mir fehlt, ist ..."
+          "DE": "Der Geruch, der sofort diese Erinnerungen hervorruft, ist ..."
         }
       }
     ]
