@@ -1,4 +1,4 @@
-package main
+package answers
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ import (
 
 const maxAnswerLength = 40
 
-type createAnswerRequest struct {
+type createRequest struct {
 	BrainPartID int    `json:"brain_part_id"`
 	Phrase      string `json:"phrase"`
 }
@@ -24,9 +24,9 @@ type answer struct {
 	CreatedAt   string `json:"created_at"`
 }
 
-func createAnswerHandler(db *sql.DB) echo.HandlerFunc {
+func CreateHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var request createAnswerRequest
+		var request createRequest
 		if err := c.Bind(&request); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		}
@@ -42,7 +42,7 @@ func createAnswerHandler(db *sql.DB) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "phrase must be 40 characters or fewer"})
 		}
 
-		createdAnswer, err := insertAnswer(c, db, request)
+		createdAnswer, err := insert(c, db, request)
 		if err != nil {
 			return fmt.Errorf("create answer: %w", err)
 		}
@@ -51,7 +51,7 @@ func createAnswerHandler(db *sql.DB) echo.HandlerFunc {
 	}
 }
 
-func listAnswersHandler(db *sql.DB) echo.HandlerFunc {
+func ListHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		rows, err := db.QueryContext(c.Request().Context(), `
 			SELECT id, brain_part_id, phrase, created_at
@@ -62,23 +62,23 @@ func listAnswersHandler(db *sql.DB) echo.HandlerFunc {
 		}
 		defer rows.Close()
 
-		answers := make([]answer, 0)
+		items := make([]answer, 0)
 		for rows.Next() {
 			var item answer
 			if err := rows.Scan(&item.ID, &item.BrainPartID, &item.Phrase, &item.CreatedAt); err != nil {
 				return fmt.Errorf("scan answer: %w", err)
 			}
-			answers = append(answers, item)
+			items = append(items, item)
 		}
 		if err := rows.Err(); err != nil {
 			return fmt.Errorf("iterate answers: %w", err)
 		}
 
-		return c.JSON(http.StatusOK, answers)
+		return c.JSON(http.StatusOK, items)
 	}
 }
 
-func insertAnswer(c echo.Context, db *sql.DB, request createAnswerRequest) (answer, error) {
+func insert(c echo.Context, db *sql.DB, request createRequest) (answer, error) {
 	var created answer
 	err := db.QueryRowContext(c.Request().Context(), `
 		INSERT INTO answers (brain_part_id, phrase)

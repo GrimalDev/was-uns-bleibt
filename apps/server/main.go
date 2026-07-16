@@ -6,20 +6,25 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"was-uns-bleibt/server/internal/answers"
+	"was-uns-bleibt/server/internal/database"
 )
 
 func main() {
 	port := env("PORT", "8080")
 	databasePath := env("DATABASE_PATH", "data/wub.db")
 
-	db, err := openDatabase(databasePath)
+	db, err := database.Open(databasePath)
 	if err != nil {
 		log.Fatalf("database setup failed: %v", err)
 	}
 	defer db.Close()
 
-	if err := migrateDatabase(db); err != nil {
+	if err := database.Migrate(db); err != nil {
 		log.Fatalf("database migration failed: %v", err)
+	}
+	if err := database.Seed(db); err != nil {
+		log.Fatalf("database seed failed: %v", err)
 	}
 
 	server := echo.New()
@@ -33,8 +38,8 @@ func main() {
 
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
-	server.POST("/api/answers", createAnswerHandler(db))
-	server.GET("/api/answers", listAnswersHandler(db))
+	server.POST("/api/answers", answers.CreateHandler(db))
+	server.GET("/api/answers", answers.ListHandler(db))
 
 	addr := ":" + port
 	log.Printf("server listening on %s", addr)

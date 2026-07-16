@@ -2,26 +2,26 @@
   {
     "id": 1,
     "name": "Le Toucher/Das Fühlen",
-    "anchor": { "x": 0.25, "y": 0.3 },
+    "anchor": { "x": 0.25, "y": 0.21 },
     "rotationSpeed": 0.12
   },
 
   {
     "id": 2,
     "name": "La Vue/Das Sehen",
-    "anchor": { "x": 0.73, "y": 0.22 },
+    "anchor": { "x": 0.73, "y": 0.2 },
     "rotationSpeed": -0.1
   },
   {
     "id": 3,
     "name": "L’Ouïe/Das Hören",
-    "anchor": { "x": 0.2, "y": 0.73 },
+    "anchor": { "x": 0.2, "y": 0.75 },
     "rotationSpeed": 0.09
   },
   {
     "id": 4,
     "name": "Le Goût/Das Schmecken",
-    "anchor": { "x": 0.8, "y": 0.72 },
+    "anchor": { "x": 0.8, "y": 0.75 },
     "rotationSpeed": -0.11
   },
   {
