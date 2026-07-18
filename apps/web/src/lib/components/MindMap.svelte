@@ -106,6 +106,7 @@
 	const LEAF_NODE_GLOW_RADIUS = 0 * SCENE_SCALE_FACTOR;
 	const LEAF_NODE_OPACITY = 1;
 	const LEAF_NODE_GLOW_OPACITY = 0.8;
+	const LEAF_LABEL_FONT_SIZE = 18 * SCENE_SCALE_FACTOR;
 	const LEAF_RING_RADIUS_SCALE = 0.1;
 	const CENTER_NODE_LEAF_DISTANCE_SCALE = 0.95;
 	const MINIMUM_LEAF_DISTANCE = 56 * SCENE_SCALE_FACTOR;
@@ -142,7 +143,7 @@
 	const FOCUSED_CLUSTER_SCALE = 1.8;
 	const UNFOCUSED_CLUSTER_SCALE = 0.65;
 	const CLUSTER_SCALE_EASING = 0.12;
-	const LABEL_RENDER_RESOLUTION_SCALE = 2.6;
+	const LABEL_RENDER_RESOLUTION_SCALE = 1;
 
 	// Label layout and styling
 	const LABEL_PADDING_HORIZONTAL = 20 * SCENE_SCALE_FACTOR;
@@ -462,7 +463,7 @@
 		try {
 			return await Assets.load<Texture>({
 				src: asset,
-				data: { resolution: 4 }
+				data: { resolution: 1 }
 			});
 		} catch {
 			return undefined;
@@ -569,7 +570,7 @@
 			resolution: textResolution,
 			style: {
 				fontFamily: 'var(--font-body)',
-				fontSize: 12 * SCENE_SCALE_FACTOR,
+				fontSize: LEAF_LABEL_FONT_SIZE,
 				fontWeight: '700',
 				fill: leafLabelColor,
 				align: 'center'
@@ -894,7 +895,7 @@
 			}));
 
 			const instance = new Application();
-			const rendererResolution = Math.min(window.devicePixelRatio || 1, 2);
+			const rendererResolution = 1;
 			await instance.init({
 				resizeTo: containerEl,
 				canvas: canvasEl,

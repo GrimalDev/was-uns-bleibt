@@ -23,6 +23,11 @@
 		state = 'save-transition';
 	}
 
+	function returnToBrain() {
+		selectedPartId = null;
+		state = 'brain';
+	}
+
 	function finishSaveTransition() {
 		selectedPartId = null;
 		answer = '';
@@ -36,7 +41,7 @@
 	{:else if state === 'transition-to-part'}
 		<AnswerAnimation onComplete={finishTransition} />
 	{:else if state === 'question' && selectedPartId !== null}
-		<PartQuestion partId={selectedPartId} onAnswer={submitAnswer} />
+		<PartQuestion partId={selectedPartId} onAnswer={submitAnswer} onReturn={returnToBrain} />
 	{:else if state === 'save-transition'}
 		<SaveAnimation onComplete={finishSaveTransition} />
 	{/if}

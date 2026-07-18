@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import '$lib/styles/screens/question-screen.scss';
 	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
 	import type { BrainPartId } from './brain-flow';
@@ -9,6 +9,7 @@
 
 	export let partId: BrainPartId;
 	export let onAnswer: (answer: string) => void;
+	export let onReturn: () => void;
 
 	let answer = '';
 	let selectedPartId: BrainPartId | null = null;
@@ -16,6 +17,7 @@
 	let questionTitle = 'What memory or thought would you like to leave here?';
 	let questionPlaceholder =
 		'For example: I still remember the warmth of your voice — type your own answer...';
+	let answerInput: HTMLInputElement;
 
 	$: if ($formDefinition.length > 0 && selectedPartId !== partId) {
 		selectedPartId = partId;
@@ -33,9 +35,22 @@
 	$: questionSegments = questionTitle.match(/\*\*[^*]+\*\*|[^*]+/g) ?? [questionTitle];
 	$: questionAccent = `var(--color-brain-${partId})`;
 
-	onMount(async () => {
-		await loadFormDefinition();
+	onMount(() => {
+		void initializeQuestion();
+		window.addEventListener('keydown', handleKeydown);
+
+		return () => window.removeEventListener('keydown', handleKeydown);
 	});
+
+	async function initializeQuestion() {
+		await loadFormDefinition();
+		await tick();
+		answerInput.focus();
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') onReturn();
+	}
 
 	async function submitAnswer() {
 		const trimmedAnswer = answer.trim();
@@ -81,6 +96,7 @@
 				<label>
 					<span class="sr-only">Your answer</span>
 					<input
+						bind:this={answerInput}
 						bind:value={answer}
 						type="text"
 						name="answer"
@@ -99,6 +115,10 @@
 				>
 					Max: {answer.length} / {MAX_ANSWER_LENGTH}
 				</p>
+			</div>
+			<div class="prompt-actions">
+				<button type="button" class="prompt-actions__return" on:click={onReturn}>Return</button>
+				<button type="submit" class="prompt-actions__submit">Validate</button>
 			</div>
 		</form>
 	</div>

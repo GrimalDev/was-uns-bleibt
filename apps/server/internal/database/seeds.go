@@ -30,16 +30,26 @@ func Seed(db *sql.DB) error {
 		brainPartID int
 		phrase      string
 	}{
-		{1, "Le jardin de Freiburg"},
-		{1, "Un decathlon"},
-		{2, "Ma maman avant son deuil"},
-		{2, "A mon beau pere"},
+		{1, "Yvette espiegle"},
+		{1, "Ma maman avant son deuil"},
+		{1, "De la guitarre"},
+		{1, "Il lit sur le canape"},
+		{2, "Son pull"},
+		{2, "Ma guitarre"},
+		{2, "Un callin"},
+		{2, "Un pat pat sur ma tete"},
 		{3, "All the leave are brown"},
+		{3, "500 milles"},
 		{3, "Du bist ein guter man geworden"},
-		{4, "Son sac a dos de velo"},
-		{4, "Un mouvement de Catan"},
+		{3, "Lilibutz"},
+		{4, "Des pfannekuchen"},
+		{4, "Thomas nachtisch"},
+		{4, "Une glace au camping"},
+		{4, "Une foret-noire"},
 		{5, "La cafetiere a l'italienne"},
-		{5, "Des pfannekuchen"},
+		{5, "L'odeur de son atelier"},
+		{5, "L'eau de mer"},
+		{5, "L'herbe et le chlore"},
 	}
 	for _, item := range seedAnswers {
 		if _, err := tx.Exec(
